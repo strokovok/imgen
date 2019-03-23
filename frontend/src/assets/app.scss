@@ -10,3 +10,22 @@ html {
   background-size: cover;
   background-position: center;
 }
+
+.ui-button {
+  opacity: 0.8;
+  font-weight: 200;
+  border: 1px white solid;
+  border-radius: 4px;
+  padding: 0.5em 0.8em;
+  background-color: transparentize(white, 0.95);
+  cursor: pointer;
+  transition: all .3s ease;
+  user-select: none;
+  &:hover {
+    background-color: transparentize(white, 0.9);
+  }
+  &:active {
+    background-color: transparentize(white, 0.8);
+    transform: translate(0, 0.1em);
+  }
+}

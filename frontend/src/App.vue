@@ -1,8 +1,10 @@
 <template>
     <div class="app">
-        <div class="title" :class="{'tight': tight_title}" @click="do_shit">IMGEN</div>
-        <div class="upload">Загрузите жопу плз...</div>
-        <!--<div class="title">Загрузите пизду на говно и выйдет хуйня</div>-->
+        <Title></Title>
+        <div class="ui-button upload-button">
+            Выбрать изображение
+            <input type="file" @change="on_file_choose">
+        </div>
     </div>
 </template>
 
@@ -13,53 +15,40 @@
         align-items: center;
     }
 
-    .upload {
-        font-size: 40px;
-        opacity: 0.7;
-        font-weight: 200;
-    }
-
-    .title {
-        cursor: pointer;
-        margin-top: 300px;
-        font-weight: 700;
-        font-size: 80px;
-        opacity: 0.85;
-        transition: all .9s ease;
-        letter-spacing: 1em;
-        padding-left: 1em;
-        margin-bottom: 200px;
-        &.tight {
-            transform: rotate(720deg);
-            letter-spacing: 0;
-            padding-left: 0;
-            margin-top: 20px;
-            font-size: 50px;
-            margin-bottom: 300px;
-        }
-        &.small {
-            margin-top: 20px;
-            font-size: 50px;
+    .upload-button {
+        font-size: 30px;
+        input {
+            display: none;
         }
     }
 </style>
 
 <script>
-    //import HelloWorld from './components/HelloWorld.vue'
+    import Title from './components/Title.vue';
 
     export default {
         name: 'app',
         components: {
-            //HelloWorld
+            Title,
         },
         data() {
             return {
-                tight_title: true,
+                socket: null,
             }
         },
+        mounted() {
+            let host = location.host;
+            this.socket = new WebSocket("ws://" + host + "/ws");
+            this.socket.onopen = () => {
+                this.socket.send("Привет!");
+            };
+            this.socket.onmessage = (message) => {
+                console.log(message);
+            };
+        },
         methods: {
-            do_shit() {
-                this.tight_title = !this.tight_title;
+            on_file_choose(a, b, c, d) {
+                console.log("Kekus", a, b, c, d);
             }
         }
     }
