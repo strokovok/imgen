@@ -1,0 +1,12 @@
+//@import 'fonts/roboto.scss';
+@import 'fonts/source_sans_pro.css';
+
+html {
+  color: white;
+  font-family: "Source Sans Pro", Helvetica, sans-serif;
+  //user-select: none !important;
+  min-height: 100vh;
+  background-image: url(bg.jpg);
+  background-size: cover;
+  background-position: center;
+}
