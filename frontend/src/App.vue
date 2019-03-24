@@ -41,6 +41,7 @@
             this.socket = new WebSocket("ws://" + host + "/ws");
             this.socket.onopen = () => {
                 this.socket.send("Привет!");
+                console.log("Socket opened!");
             };
             this.socket.onmessage = (message) => {
                 console.log(message);
