@@ -8,12 +8,13 @@
 
 using namespace std;
 
+int sessions_count = 0;
 unordered_map <crow::websocket::connection*, Session*> socket_session;
 mutex mtx;
 
 void start_session(crow::websocket::connection* socket) {
     lock_guard<mutex> _(mtx);
-    socket_session[socket] = new Session(socket);
+    socket_session[socket] = new Session(++sessions_count, socket);
 }
 
 Session* get_session(crow::websocket::connection* socket) {

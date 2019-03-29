@@ -1,6 +1,6 @@
 <template>
     <div class="title"
-         :class="{'small': is_small}"
+         :class="{'small': is_computed_small}"
          @click="change_size">
         {{title}}
     </div>
@@ -22,22 +22,37 @@
             letter-spacing: 0;
             padding-left: 0;
             margin-top: 20px;
-            margin-bottom: 300px;
+            margin-bottom: 100px;
             transform: rotate(720deg);
         }
     }
 </style>
 
 <script>
+    import Session from '@/js/session.js';
+    import SessionStates from '@/js/session_states.js';
+
     export default {
         data() {
             return {
-                is_small: false,
+                is_small: true,
                 title: "IMGEN",
             };
         },
+        computed: {
+            resize_taboo() {
+                return Session.state === SessionStates.START;
+            },
+            is_computed_small() {
+                if (this.resize_taboo)
+                    return false;
+                return this.is_small;
+            }
+        },
         methods: {
             change_size() {
+                if (this.resize_taboo)
+                    return;
                 this.is_small = !this.is_small;
             }
         }

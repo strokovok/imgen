@@ -1,0 +1,65 @@
+import Vue from 'vue';
+import Session from './session.js';
+import SessionStates from './session_states.js';
+import FrontOps from './front_ops.js';
+import BackOps from './back_ops.js';
+
+const PIECE_LEN = 128;
+
+const user_image = new Vue({
+    data() {
+        return {
+            image_data: {
+                extension: null,
+                width: null,
+                height: null,
+                as_data_url: null,
+                as_array_buffer: null,
+            },
+            len_sent: 0,
+            uploading_progress: 0,
+        };
+    },
+    methods: {
+        set_data(image_data) {
+            for (let key in image_data)
+                this.image_data[key] = image_data[key];
+            Session.state = SessionStates.UPLOADING;
+            this.start_uploading();
+        },
+        start_uploading() {
+            this.len_sent = 0;
+            this.uploading_progress = 0;
+            Session.$on('on-socket-message', this.on_message);
+            Session.send({
+                "op": FrontOps.START_UPLOADING,
+                "extension": this.image_data.extension,
+            });
+        },
+        send_piece() {
+            const data = new Uint8Array(this.image_data.as_array_buffer);
+            if (this.len_sent < data.length) {
+                let piece = [];
+                while (piece.length < PIECE_LEN && this.len_sent < data.length)
+                    piece.push(data[this.len_sent++]);
+                Session.send({
+                    "op": FrontOps.UPLOAD_PIECE,
+                    "piece": piece
+                });
+                this.uploading_progress = this.len_sent / data.length;
+            } else {
+                Session.send({
+                    "op": FrontOps.UPLOAD_DONE,
+                });
+                Session.$off('on-socket-message', this.on_message);
+                Session.state = SessionStates.PROCESSING_FILE;
+            }
+        },
+        on_message(message) {
+            if (message["op"] === BackOps.GIVE_ME_PIECE)
+                this.send_piece();
+        }
+    }
+});
+
+export default user_image;
