@@ -6,5 +6,7 @@ public:
 
 	static const int UPLOADING = 1;
 	
-	static const int PROCESSING_FILE = 2;
+	static const int READY_TO_RUN = 2;
+
+	static const int BROKEN = 99999;
 };

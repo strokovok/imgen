@@ -4,6 +4,10 @@
 #include "include/crow.h"
 #include "include/json11/json11.cpp"
 
+#define cimg_use_jpeg
+#define cimg_use_png
+#include "include/CImg.h"
+
 #include "classes/session.cpp"
 
 using namespace std;

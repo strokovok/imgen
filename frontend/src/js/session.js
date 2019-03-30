@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import SessionStates from './session_states';
+import BackOps from './back_ops.js';
 
 const session = new Vue({
     data() {
@@ -29,6 +30,12 @@ const session = new Vue({
         on_socket_message(message) {
             message = JSON.parse(message.data);
             //console.log("GOT MESSAGE", message);
+            if ([BackOps.INVALID_OPERATION, BackOps.BROKEN].includes(message["op"]))
+                console.log("Trouble:", message);
+            if (message["op"] === BackOps.BROKEN)
+                alert("Что-то пошло не так, перезагрузите страницу.");
+            if (message["op"] === BackOps.READY_TO_RUN)
+                this.state = SessionStates.READY_TO_RUN;
             this.$emit("on-socket-message", message);
         },
         send(message) {
