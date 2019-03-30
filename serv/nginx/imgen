@@ -1,0 +1,20 @@
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /srv/imgen/frontend/dist;
+
+	server_name _;
+
+	index index.html;
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+	location /ws {
+	    proxy_pass http://0.0.0.0:40080;
+	    proxy_http_version 1.1;
+	    proxy_set_header Upgrade $http_upgrade;
+	}
+}

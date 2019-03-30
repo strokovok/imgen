@@ -1,0 +1,10 @@
+[Unit]
+Description=Imgen
+
+[Service]
+WorkingDirectory=/srv/imgen/backend
+ExecStart=/srv/imgen/backend/imgen
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
