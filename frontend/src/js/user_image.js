@@ -4,7 +4,7 @@ import SessionStates from './session_states.js';
 import FrontOps from './front_ops.js';
 import BackOps from './back_ops.js';
 
-const PIECE_LEN = 512;
+const PIECE_LEN = 1024;
 
 const user_image = new Vue({
     data() {
