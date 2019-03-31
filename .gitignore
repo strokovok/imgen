@@ -1,0 +1,8 @@
+*.DS_Store
+
+/backend/sessions/*
+
+/backend/main
+
+/backend/imgen
+
