@@ -27,7 +27,7 @@
                     width: null,
                     height: null,
                     as_data_url: null,
-                    as_array_buffer: null,
+                    as_binary_string: null,
                 }
             };
         },
@@ -46,7 +46,7 @@
                 this.validate_image();
             },
             on_load() {
-                if (!this.image_data.as_data_url || !this.image_data.as_array_buffer)
+                if (!this.image_data.as_data_url || !this.image_data.as_binary_string)
                     return;
                 UserImage.set_data(this.image_data);
                 this.reset();
@@ -61,7 +61,14 @@
 
                 const binaryReader = new FileReader();
                 binaryReader.onload = (e) => {
-                    this.image_data.as_array_buffer = e.target.result;
+                    const data = new Uint8Array(e.target.result);
+                    this.image_data.as_binary_string = "";
+                    const a_code = 'a'.charCodeAt(0);
+                    for (let i = 0; i < data.length; ++i) {
+                        const c1 = String.fromCharCode(a_code + Math.floor(data[i] / 16));
+                        const c2 = String.fromCharCode(a_code + data[i] % 16);
+                        this.image_data.as_binary_string += c1 + c2;
+                    }
                     this.on_load();
                 };
                 binaryReader.readAsArrayBuffer(this.file);

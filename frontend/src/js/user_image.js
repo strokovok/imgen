@@ -4,7 +4,7 @@ import SessionStates from './session_states.js';
 import FrontOps from './front_ops.js';
 import BackOps from './back_ops.js';
 
-const PIECE_LEN = 128;
+const PIECE_LEN = 512;
 
 const user_image = new Vue({
     data() {
@@ -14,7 +14,7 @@ const user_image = new Vue({
                 width: null,
                 height: null,
                 as_data_url: null,
-                as_array_buffer: null,
+                as_binary_string: null,
             },
             len_sent: 0,
             uploading_progress: 0,
@@ -37,16 +37,14 @@ const user_image = new Vue({
             });
         },
         send_piece() {
-            const data = new Uint8Array(this.image_data.as_array_buffer);
-            if (this.len_sent < data.length) {
-                let piece = [];
-                while (piece.length < PIECE_LEN && this.len_sent < data.length)
-                    piece.push(data[this.len_sent++]);
+            if (this.len_sent < this.image_data.as_binary_string.length) {
+                const r = Math.min(this.len_sent + PIECE_LEN, this.image_data.as_binary_string.length);
                 Session.send({
                     "op": FrontOps.UPLOAD_PIECE,
-                    "piece": piece
+                    "piece": this.image_data.as_binary_string.substring(this.len_sent, r)
                 });
-                this.uploading_progress = this.len_sent / data.length;
+                this.len_sent = r;
+                this.uploading_progress = this.len_sent / this.image_data.as_binary_string.length;
             } else {
                 Session.send({
                     "op": FrontOps.UPLOAD_DONE,

@@ -99,17 +99,21 @@ private:
 		if (state != SessionStates::UPLOADING)
 			return void(send_invalid("Uploading is not in progress"));
 
-		if (!request["piece"].is_array())
-			return void(send_invalid("Piece must be array of integers"));
+		if (!request["piece"].is_string())
+			return void(send_invalid("Piece must be string"));
 
-		auto bytes = request["piece"].array_items();
-		if (bytes.size() + cur_file_size > MAX_FILE_SIZE)
+		string piece = request["piece"].string_value();
+		if (piece.length() % 2 != 0)
+			return void(send_invalid("Length of piece must be even"));
+
+		if (piece.length() / 2 + cur_file_size > MAX_FILE_SIZE)
 			return void(send_invalid("Max size of file is: " + to_string(MAX_FILE_SIZE) + " bytes"));
 
-		for (auto &item: bytes) {
-			if (!item.is_number())
-				return void(send_invalid("Piece must be array of integers"));
-			unsigned char byte = item.int_value();
+		for (int i = 0; i < piece.length(); i += 2) {
+			char a = piece[i], b = piece[i + 1];
+			if (a < 'a' || b < 'a' || a >= ('a' + 16) || b >= ('a' + 16))
+				return void(send_invalid("Piece chars must be in range ['a', 'a' + 16)"));
+			unsigned char byte = (a - 'a') * 16 + (b - 'a');
 			user_image_file << byte;
 			++cur_file_size;
 		}
