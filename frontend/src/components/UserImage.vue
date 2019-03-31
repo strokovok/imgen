@@ -9,7 +9,6 @@
 
 <style lang="scss" scoped>
     .container {
-        border-radius: 4px;
         position: relative;
     }
 
@@ -27,7 +26,6 @@
         position: absolute;
         top: 0;
         left: 0;
-        transition: all .6s ease;
     }
 
 </style>
@@ -35,8 +33,8 @@
 <script>
     import UserImage from '@/js/user_image.js';
 
-    const MAX_WIDTH = 512;
-    const MAX_HEIGHT = 512;
+    const MAX_WIDTH = 640;
+    const MAX_HEIGHT = 640;
 
     export default {
         computed: {

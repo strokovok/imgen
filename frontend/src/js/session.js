@@ -35,7 +35,9 @@ const session = new Vue({
             if (message["op"] === BackOps.BROKEN)
                 alert("Что-то пошло не так, перезагрузите страницу.");
             if (message["op"] === BackOps.READY_TO_RUN)
-                this.state = SessionStates.READY_TO_RUN;
+                setTimeout(() => {
+                    this.state = SessionStates.READY_TO_RUN;
+                }, 1000);
             this.$emit("on-socket-message", message);
         },
         send(message) {
