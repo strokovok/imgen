@@ -30,10 +30,10 @@ const session = new Vue({
         on_socket_message(message) {
             message = JSON.parse(message.data);
             //console.log("GOT MESSAGE", message);
-            if ([BackOps.INVALID_OPERATION, BackOps.BROKEN].includes(message["op"]))
-                console.log("Trouble:", message);
-            if (message["op"] === BackOps.BROKEN)
+            if (message["op"] === BackOps.BROKEN) {
+                console.log("Broken:", message);
                 alert("Что-то пошло не так, перезагрузите страницу.");
+            }
             if (message["op"] === BackOps.READY_TO_RUN)
                 setTimeout(() => {
                     this.state = SessionStates.READY_TO_RUN;

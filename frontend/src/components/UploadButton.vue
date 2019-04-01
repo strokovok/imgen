@@ -17,6 +17,8 @@
 <script>
     import UserImage from '@/js/user_image.js';
 
+    const MAX_SIZE = 1024;
+
     export default {
         data() {
             return {
@@ -27,7 +29,7 @@
                     width: null,
                     height: null,
                     as_data_url: null,
-                    as_binary_string: null,
+                    as_base64: null,
                 }
             };
         },
@@ -45,60 +47,41 @@
                 this.file = event.target.files[0];
                 this.validate_image();
             },
-            on_load() {
-                if (!this.image_data.as_data_url || !this.image_data.as_binary_string)
-                    return;
-                UserImage.set_data(this.image_data);
-                this.reset();
-            },
-            on_valid_image() {
+            validate_image() {
                 const dataUrlReader = new FileReader();
                 dataUrlReader.onload = (e) => {
-                    this.image_data.as_data_url = e.target.result;
-                    this.on_load();
-                };
-                dataUrlReader.readAsDataURL(this.file);
-
-                const binaryReader = new FileReader();
-                binaryReader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    this.image_data.as_binary_string = "";
-                    const a_code = 'a'.charCodeAt(0);
-                    for (let i = 0; i < data.length; ++i) {
-                        const c1 = String.fromCharCode(a_code + Math.floor(data[i] / 16));
-                        const c2 = String.fromCharCode(a_code + data[i] % 16);
-                        this.image_data.as_binary_string += c1 + c2;
-                    }
-                    this.on_load();
-                };
-                binaryReader.readAsArrayBuffer(this.file);
-            },
-            on_invalid_image() {
-                alert("Некорректное изображение");
-                this.reset();
-            },
-            validate_image() {
-                if (this.file.size > (10 * 1024 * 1024)) {
-                    alert("Файл слишком большой (>10мб)");
-                    this.reset();
-                }
-
-                this.image_data.extension = this.file.type.replace("image/", "");
-
-                let image = new Image();
-                image.onload = () => {
-                    if (image.width && image.height) {
+                    const image = new Image();
+                    image.onload = () => {
                         this.image_data.width = image.width;
                         this.image_data.height = image.height;
-                        this.on_valid_image();
-                    } else
-                        this.on_invalid_image();
+
+                        let w = image.width, h = image.height;
+                        let mx = Math.max(w, h);
+                        let mul = (mx > MAX_SIZE) ? MAX_SIZE / mx : 1;
+                        w = Math.round(w * mul);
+                        h = Math.round(h * mul);
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+
+                        let base64 = canvas.toDataURL("image/jpeg", 1.0);
+                        this.image_data.as_base64 = base64.replace('data:image/jpeg;base64,', '');
+                        this.image_data.extension = "jpg";
+
+                        UserImage.set_data(this.image_data);
+                        this.reset();
+                    };
+                    image.onerror = () => {
+                        alert("Некорректное изображение");
+                        this.reset();
+                    };
+
+                    this.image_data.as_data_url = e.target.result;
+                    image.src = e.target.result;
                 };
-                image.onerror = () => {
-                    this.on_invalid_image();
-                };
-                let url = window.URL || window.webkitURL;
-                image.src = url.createObjectURL(this.file);
+                dataUrlReader.readAsDataURL(this.file);
             },
         }
     }

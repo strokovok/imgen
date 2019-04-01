@@ -10,6 +10,7 @@
 #include "back_ops.cpp"
 #include "session_states.cpp"
 #include "edge_detector.cpp"
+#include "base64_file_saver.cpp"
 
 using namespace std;
 using namespace json11;
@@ -22,10 +23,9 @@ private:
 	int id, state;
 	crow::websocket::connection* socket;
 
-	string user_image_path;
+	string user_image_base64;
+	string user_image_extension;
 
-	int cur_file_size = 0;
-	ofstream user_image_file;
 	Image *user_image, *edges_image;
 
 	const int MAX_SIZE = 1024;
@@ -48,10 +48,8 @@ public:
 
 		string err = "NOERR";
         Json request = Json::parse(data, err);
-        if (err != "NOERR") {
-            CROW_LOG_INFO << err;
-            return;
-        }
+        if (err != "NOERR")
+            return void(broke("Unable to parse json: " + err));
 
         string op = request["op"].string_value();
 
@@ -61,7 +59,7 @@ public:
 
         if (op == FrontOps::UPLOAD_DONE) return void(on_upload_done(request));
 
-        send_invalid("Unknown operation: " + op);
+        broke("Unknown operation: " + op);
 	}
 
 private:
@@ -70,25 +68,23 @@ private:
 		socket->send_text(response.dump());
 	}
 
-	void send_invalid(string reason) {
-		Json response = Json::object {
-			{"op", BackOps::INVALID_OPERATION},
-			{"reason", reason},
-		};
-		send(response);
-	}
-
 	void on_start_uploading(Json &request) {
 		if (state != SessionStates::START)
-			return void(send_invalid("Upload already started"));
+			return void(broke("Upload already started"));
 
-		string extension = request["extension"].string_value();
-		if (extension != "png" && extension != "jpg" && extension != "jpeg")
-			return void(send_invalid("Unknown image format: " + extension));
+		string ext = request["extension"].string_value();
+		if (ext != "png" && ext != "jpg" && ext != "jpeg")
+			return void(broke("Unknown image format: " + ext));
+		user_image_extension = ext;
+
+		if (request["length"].is_number()) {
+			int length = request["length"].int_value();
+			if (length > MAX_FILE_SIZE)
+				return void(broke("Max size of file is: " + to_string(MAX_FILE_SIZE) + " bytes"));
+			user_image_base64.reserve(length);
+		}
 
 		state = SessionStates::UPLOADING;
-		user_image_path = "sessions/" + to_string(id) + "." + extension;
-		user_image_file.open(user_image_path, ios::binary);
 		Json response = Json::object {
 			{"op", BackOps::GIVE_ME_PIECE}
 		};
@@ -97,26 +93,17 @@ private:
 
 	void on_upload_piece(Json &request) {
 		if (state != SessionStates::UPLOADING)
-			return void(send_invalid("Uploading is not in progress"));
+			return void(broke("Uploading is not in progress"));
 
 		if (!request["piece"].is_string())
-			return void(send_invalid("Piece must be string"));
+			return void(broke("Piece must be string"));
 
 		string piece = request["piece"].string_value();
-		if (piece.length() % 2 != 0)
-			return void(send_invalid("Length of piece must be even"));
+		if (piece.length() + user_image_base64.length() > MAX_FILE_SIZE)
+			return void(broke("Max size of file is: " + to_string(MAX_FILE_SIZE) + " bytes"));
 
-		if (piece.length() / 2 + cur_file_size > MAX_FILE_SIZE)
-			return void(send_invalid("Max size of file is: " + to_string(MAX_FILE_SIZE) + " bytes"));
+		user_image_base64 += piece;
 
-		for (int i = 0; i < piece.length(); i += 2) {
-			char a = piece[i], b = piece[i + 1];
-			if (a < 'a' || b < 'a' || a >= ('a' + 16) || b >= ('a' + 16))
-				return void(send_invalid("Piece chars must be in range ['a', 'a' + 16)"));
-			unsigned char byte = (a - 'a') * 16 + (b - 'a');
-			user_image_file << byte;
-			++cur_file_size;
-		}
 		Json response = Json::object {
 			{"op", BackOps::GIVE_ME_PIECE}
 		};
@@ -124,13 +111,20 @@ private:
 	}
 
 	void on_upload_done(Json &request) {
-		user_image_file.close();
+		if (state != SessionStates::UPLOADING)
+			return void(broke("Uploading is not in progress"));
+
+		string user_image_path = "sessions/" + to_string(id) + '.' + user_image_extension;
+
 		try {
-			process_file();
+			if (!Base64FileSaver().save(user_image_base64, user_image_path))
+				return void(broke("Unable to parse base64"));
+			clear_base64_cache();
+			process_file(user_image_path);
 		} catch (...) {
-			broke("Unable to process file");
-			return;
+			return void(broke("Unable to process file"));
 		}
+
 		state = SessionStates::READY_TO_RUN;
 		Json response = Json::object {
 			{"op", BackOps::READY_TO_RUN}
@@ -138,7 +132,7 @@ private:
 		send(response);
 	}
 
-	void process_file() {
+	void process_file(string user_image_path) {
 		user_image = new Image(user_image_path.c_str());
 
 		int w = user_image->width(), h = user_image->height();
@@ -149,12 +143,17 @@ private:
 		edges_image = EdgeDetector().process(user_image);
 	}
 
+	void clear_base64_cache() {
+		user_image_base64 = "";
+		user_image_base64.shrink_to_fit();
+	}
+
 	void clear() {
 		if (state == SessionStates::BROKEN)
 			return;
 
 		if (state == SessionStates::UPLOADING)
-			user_image_file.close();
+			clear_base64_cache();
 
 		if (state != SessionStates::START && state != SessionStates::UPLOADING) {
 			delete user_image;

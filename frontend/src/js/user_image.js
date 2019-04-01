@@ -14,7 +14,7 @@ const user_image = new Vue({
                 width: null,
                 height: null,
                 as_data_url: null,
-                as_binary_string: null,
+                as_base64: null,
             },
             len_sent: 0,
             uploading_progress: 0,
@@ -34,17 +34,18 @@ const user_image = new Vue({
             Session.send({
                 "op": FrontOps.START_UPLOADING,
                 "extension": this.image_data.extension,
+                "length": this.image_data.as_base64.length,
             });
         },
         send_piece() {
-            if (this.len_sent < this.image_data.as_binary_string.length) {
-                const r = Math.min(this.len_sent + PIECE_LEN, this.image_data.as_binary_string.length);
+            if (this.len_sent < this.image_data.as_base64.length) {
+                const r = Math.min(this.len_sent + PIECE_LEN, this.image_data.as_base64.length);
                 Session.send({
                     "op": FrontOps.UPLOAD_PIECE,
-                    "piece": this.image_data.as_binary_string.substring(this.len_sent, r)
+                    "piece": this.image_data.as_base64.substring(this.len_sent, r)
                 });
                 this.len_sent = r;
-                this.uploading_progress = this.len_sent / this.image_data.as_binary_string.length;
+                this.uploading_progress = this.len_sent / this.image_data.as_base64.length;
             } else {
                 Session.send({
                     "op": FrontOps.UPLOAD_DONE,
