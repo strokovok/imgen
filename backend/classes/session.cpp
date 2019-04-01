@@ -1,8 +1,7 @@
 #pragma once
 #include <unordered_set>
 #include <mutex>
-#include <chrono>
-#include <vector>
+#include <ctime>
 #include <fstream>
 #include <string>
 
@@ -114,7 +113,8 @@ private:
 		if (state != SessionStates::UPLOADING)
 			return void(broke("Uploading is not in progress"));
 
-		string user_image_path = "sessions/" + to_string(id) + '.' + user_image_extension;
+		string stamp = to_string(time(NULL)) + "_" + to_string(id);
+		string user_image_path = "sessions/" + stamp + '.' + user_image_extension;
 
 		try {
 			if (!Base64FileSaver().save(user_image_base64, user_image_path))
