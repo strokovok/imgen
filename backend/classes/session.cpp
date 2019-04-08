@@ -168,7 +168,8 @@ private:
 
 		Json response = Json::object {
 			{"op", BackOps::RESULT},
-			{"edges", edges_worker->get_result()}
+			{"edges", edges_worker->get_result()},
+			{"edges_canvas_size", MAX_SIZE},
 		};
 		send(response);
 	}

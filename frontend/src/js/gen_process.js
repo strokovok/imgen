@@ -7,6 +7,7 @@ import BackOps from './back_ops.js';
 const gen_process = new Vue({
     data() {
         return {
+            CANVAS_SIZE: 1024,
             edges: null,
             config: null,
         };
@@ -35,6 +36,11 @@ const gen_process = new Vue({
                 return;
 
             this.edges = message["edges"];
+
+            const CANVAS_MUL = this.CANVAS_SIZE / message["edges_canvas_size"];
+            for (let segment of this.edges.segments)
+                for (let i = 0; i < 4; ++i)
+                    segment[i] *= CANVAS_MUL;
 
             this.request_result(1000);
         }

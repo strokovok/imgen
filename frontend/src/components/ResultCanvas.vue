@@ -16,10 +16,6 @@
     const MAX_WIDTH = 640;
     const MAX_HEIGHT = 640;
 
-    const BACK_CANVAS_SIZE = 256;
-    const MAX_CANVAS_SIZE = 1024;
-    const CANVAS_MUL = MAX_CANVAS_SIZE / BACK_CANVAS_SIZE;
-
     export default {
         data() {
             return {
@@ -36,7 +32,7 @@
             this.ctx = this.canvas.getContext("2d");
             let width = UserImage.image_data.width;
             let height = UserImage.image_data.height;
-            let mul = MAX_CANVAS_SIZE / Math.max(width, height);
+            let mul = GenProcess.CANVAS_SIZE / Math.max(width, height);
             this.canvas.width = width * mul;
             this.canvas.height = height * mul;
             requestAnimationFrame(this.draw);
@@ -57,8 +53,7 @@
                     y: this.canvas.height / 2,
                 }
             },
-            force_point(a, b, delta) {
-                const pow = 0.6 ** (delta / 200);
+            force_point(a, b, pow) {
                 return {
                     x: b.x - (b.x - a.x) * pow,
                     y: b.y - (b.y - a.y) * pow,
@@ -73,19 +68,20 @@
                 this.ctx.fillStyle = GenProcess.config.background_color;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+                if (GenProcess.edges !== null)
+                    this.draw_edges(delta);
+
+                requestAnimationFrame(this.draw);
+            },
+            draw_edges(delta) {
+                const pow = 0.6 ** (delta / 200);
+
                 for (let i = 0; i < GenProcess.config.segments_cnt; ++i) {
-                    if (GenProcess.edges !== null) {
-                        let na = {
-                            x: GenProcess.edges.segments[i][0] * CANVAS_MUL,
-                            y: GenProcess.edges.segments[i][1] * CANVAS_MUL,
-                        };
-                        let nb = {
-                            x: GenProcess.edges.segments[i][2] * CANVAS_MUL,
-                            y: GenProcess.edges.segments[i][3] * CANVAS_MUL,
-                        };
-                        this.edges.segments[i].a = this.force_point(this.edges.segments[i].a, na, delta);
-                        this.edges.segments[i].b = this.force_point(this.edges.segments[i].b, nb, delta);
-                    }
+                    let segment = GenProcess.edges.segments[i];
+                    let na = { x: segment[0], y: segment[1] };
+                    let nb = { x: segment[2], y: segment[3] };
+                    this.edges.segments[i].a = this.force_point(this.edges.segments[i].a, na, pow);
+                    this.edges.segments[i].b = this.force_point(this.edges.segments[i].b, nb, pow);
 
                     this.ctx.strokeStyle = GenProcess.config.edges_color;
                     this.ctx.beginPath();
@@ -94,9 +90,7 @@
                     this.ctx.closePath();
                     this.ctx.stroke();
                 }
-
-                requestAnimationFrame(this.draw);
-            },
+            }
         },
         computed: {
             img_size_style() {
