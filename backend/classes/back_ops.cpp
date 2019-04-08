@@ -6,6 +6,8 @@ public:
 
 	static const string READY_TO_RUN;
 
+	static const string RESULT;
+
 	static const string BROKEN;
 
 };
@@ -13,5 +15,7 @@ public:
 const string BackOps::GIVE_ME_PIECE = "GIVE_ME_PIECE";
 
 const string BackOps::READY_TO_RUN = "READY_TO_RUN";
+
+const string BackOps::RESULT = "RESULT";
 
 const string BackOps::BROKEN = "BROKEN";

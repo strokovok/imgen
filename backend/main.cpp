@@ -13,23 +13,23 @@
 using namespace std;
 
 int sessions_count = 0;
-unordered_map <crow::websocket::connection*, Session*> socket_session;
-mutex mtx;
+unordered_map<crow::websocket::connection*, Session*> socket_session;
+mutex sessions_mutex;
 
 void start_session(crow::websocket::connection* socket) {
-    lock_guard<mutex> _(mtx);
+    lock_guard<mutex> _(sessions_mutex);
     socket_session[socket] = new Session(++sessions_count, socket);
 }
 
 Session* get_session(crow::websocket::connection* socket) {
-    lock_guard<mutex> _(mtx);
+    lock_guard<mutex> _(sessions_mutex);
     return socket_session[socket];
 }
 
 void end_session(crow::websocket::connection* socket) {
     Session* session = get_session(socket);
     delete session;
-    lock_guard<mutex> _(mtx);
+    lock_guard<mutex> _(sessions_mutex);
     socket_session.erase(socket);
 }
 

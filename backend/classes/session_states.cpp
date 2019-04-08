@@ -8,5 +8,7 @@ public:
 	
 	static const int READY_TO_RUN = 2;
 
+	static const int RUNNING = 3;
+
 	static const int BROKEN = 99999;
 };

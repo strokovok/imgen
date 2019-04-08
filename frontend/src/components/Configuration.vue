@@ -30,7 +30,7 @@
             </div>
             <div class="config-item-text">Окружностей</div>
         </div>
-        <div class="ui-button launch-button">Запуск</div>
+        <div class="ui-button launch-button" @click="launch">Запуск</div>
     </div>
 </template>
 
@@ -75,7 +75,8 @@
 <script>
     import verte from 'verte';
     import 'verte/dist/verte.css';
-    import InputNumber from '@/components/InputNumber.vue'
+    import InputNumber from '@/components/InputNumber.vue';
+    import GenProcess from '@/js/gen_process.js';
 
     export default {
         components: {
@@ -84,12 +85,21 @@
         },
         data() {
             return {
-                background_color: "rgb(90, 251, 221, 0.3)",
-                edges_color: "rgb(255, 255, 255, 1)",
+                background_color: "rgba(0, 0, 0, 0.3)",
+                edges_color: "rgba(255, 255, 255, 1)",
                 segments: 512,
                 triangles: 50,
                 circles: 0,
             };
         },
+        methods: {
+            launch() {
+                GenProcess.start({
+                    segments_cnt: this.segments,
+                    background_color: this.background_color,
+                    edges_color: this.edges_color
+                });
+            }
+        }
     }
 </script>

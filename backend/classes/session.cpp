@@ -10,6 +10,8 @@
 #include "session_states.cpp"
 #include "edge_detector.cpp"
 #include "base64_file_saver.cpp"
+#include "reproduce/gen_worker.cpp"
+#include "reproduce/edges_result.cpp"
 
 using namespace std;
 using namespace json11;
@@ -27,9 +29,15 @@ private:
 
 	Image *user_image, *edges_image;
 
-	const int MAX_SIZE = 1024;
+	GenEdgesContext *edges_context;
+	GenWorker<EdgesResult, GenEdgesContext> *edges_worker;
+
+	//const int MAX_SIZE = 1024;
+	const int MAX_SIZE = 256;
 
 	const int MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+	const int MAX_SEGMENTS = 512;
 
 public:
 
@@ -57,6 +65,10 @@ public:
         if (op == FrontOps::UPLOAD_PIECE) return void(on_upload_piece(request));
 
         if (op == FrontOps::UPLOAD_DONE) return void(on_upload_done(request));
+
+    	if (op == FrontOps::START) return void(on_start(request));
+
+        if (op == FrontOps::GET_RESULT) return void(on_get_result(request));
 
         broke("Unknown operation: " + op);
 	}
@@ -132,6 +144,35 @@ private:
 		send(response);
 	}
 
+	void on_start(Json &request) {
+		if (state != SessionStates::READY_TO_RUN)
+			return void(broke("Not ready to start"));
+
+		int segments_cnt = 0;
+		if (request["segments_cnt"].is_number())
+			segments_cnt = request["segments_cnt"].int_value();
+
+		if (segments_cnt < 0 || segments_cnt > MAX_SEGMENTS)
+			return void(broke("Incorrect segments_cnt"));
+
+		edges_context = new GenEdgesContext(edges_image, segments_cnt);
+
+		edges_worker = new GenWorker<EdgesResult, GenEdgesContext>(edges_context);
+
+		state = SessionStates::RUNNING;
+	}
+
+	void on_get_result(Json &request) {
+		if (state != SessionStates::RUNNING)
+			return void(broke("Not running to get result"));
+
+		Json response = Json::object {
+			{"op", BackOps::RESULT},
+			{"edges", edges_worker->get_result()}
+		};
+		send(response);
+	}
+
 	void process_file(string user_image_path) {
 		user_image = new Image(user_image_path.c_str());
 
@@ -154,6 +195,11 @@ private:
 
 		if (state == SessionStates::UPLOADING)
 			clear_base64_cache();
+
+		if (state == SessionStates::RUNNING) {
+			delete edges_worker;
+			delete edges_context;
+		}
 
 		if (state != SessionStates::START && state != SessionStates::UPLOADING) {
 			delete user_image;
