@@ -49,15 +49,24 @@
         methods: {
             make_middle_point() {
                 return {
-                    x: this.canvas.width / 2,
-                    y: this.canvas.height / 2,
-                }
-            },
-            force_point(a, b, pow) {
-                return {
-                    x: b.x - (b.x - a.x) * pow,
-                    y: b.y - (b.y - a.y) * pow,
+                    _x: this.canvas.width / 2,
+                    _y: this.canvas.height / 2,
+                    x_vel: Math.random() * 2 - 1,
+                    y_vel: Math.random() * 2 + 1,
+                    crazy_seed: Math.random() * Math.PI * 2,
+                    crazy_radius: 1 + Math.random() * 4,
+                    crazy_speed: 100 + Math.random() * 250,
                 };
+            },
+            evaluate_point(p) {
+                p.x = p._x + Math.sin(p.crazy_seed) * p.crazy_radius;
+                p.y = p._y + Math.cos(p.crazy_seed) * p.crazy_radius;
+            },
+            force_point(a, b, pow, delta) {
+                a.crazy_seed = (a.crazy_seed + delta / a.crazy_speed) % (Math.PI * 2);
+                a._x = b.x - (b.x - a._x) * pow;
+                a._y = b.y - (b.y - a._y) * pow;
+                this.evaluate_point(a);
             },
             draw() {
                 const now = performance.now();
@@ -74,14 +83,16 @@
                 requestAnimationFrame(this.draw);
             },
             draw_edges(delta) {
-                const pow = 0.6 ** (delta / 200);
+                const pow = 0.7 ** (delta / 350);
 
                 for (let i = 0; i < GenProcess.config.segments_cnt; ++i) {
-                    let segment = GenProcess.edges.segments[i];
-                    let na = { x: segment[0], y: segment[1] };
-                    let nb = { x: segment[2], y: segment[3] };
-                    this.edges.segments[i].a = this.force_point(this.edges.segments[i].a, na, pow);
-                    this.edges.segments[i].b = this.force_point(this.edges.segments[i].b, nb, pow);
+                    let gen_segment = GenProcess.edges.segments[i];
+                    let na = { x: gen_segment[0], y: gen_segment[1] };
+                    let nb = { x: gen_segment[2], y: gen_segment[3] };
+
+                    let segment = this.edges.segments[i];
+                    this.force_point(segment.a, na, pow, delta);
+                    this.force_point(segment.b, nb, pow, delta);
 
                     this.ctx.strokeStyle = GenProcess.config.edges_color;
                     this.ctx.beginPath();
