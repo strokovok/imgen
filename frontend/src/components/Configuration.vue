@@ -28,7 +28,7 @@
             <div class="left-column">
                 <input-number v-model="paint_opacity" :min="0" :max="100"/>
             </div>
-            <div class="config-item-text">Прозрачность окраски (0 - 100)</div>
+            <div class="config-item-text">Непрозрачность окраски (0 - 100)</div>
         </div>
         <div class="config-item">
             <div class="left-column">
@@ -97,13 +97,13 @@
         },
         data() {
             return {
-                background_color: "rgba(0, 0, 0, 1)",//"rgba(0, 0, 0, 0.3)",
-                edges_color: "rgba(0, 0, 0, 1)",//"rgba(255, 255, 255, 1)",
+                background_color: "rgba(0, 0, 0, 0.7)",
+                edges_color: "rgba(0, 0, 0, 1)",
                 segments: 512,
-                triangles: 512,
-                circles: 5,
-                axis_div: 7,
-                paint_opacity: 50
+                triangles: 1024,
+                circles: 0,
+                axis_div: 10,
+                paint_opacity: 75
             };
         },
         methods: {

@@ -17,7 +17,7 @@
 <script>
     import UserImage from '@/js/user_image.js';
 
-    const MAX_SIZE = 1024;
+    const MAX_SIZE = 256;
 
     export default {
         data() {

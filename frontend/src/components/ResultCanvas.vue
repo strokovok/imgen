@@ -145,7 +145,7 @@
                 }
             },
             draw_triangles(delta) {
-                const pow = 0.6 ** (delta / 200);
+                const pow = 0.6 ** (delta / 500);
 
                 for (let i = 0; i < GenProcess.config.triangles_cnt; ++i) {
                     let gen_triangle = GenProcess.paint.triangles[i];
