@@ -20,13 +20,13 @@
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="triangles" :min="0" :max="128"/>
+                <input-number v-model="triangles" :min="0" :max="512"/>
             </div>
             <div class="config-item-text">Треугольников</div>
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="circles" :min="0" :max="128"/>
+                <input-number v-model="circles" :min="0" :max="64"/>
             </div>
             <div class="config-item-text">Окружностей</div>
         </div>
@@ -85,11 +85,11 @@
         },
         data() {
             return {
-                background_color: "rgba(0, 0, 0, 0.3)",
-                edges_color: "rgba(255, 255, 255, 1)",
+                background_color: "rgba(0, 0, 0, 1)",//"rgba(0, 0, 0, 0.3)",
+                edges_color: "rgba(0, 0, 0, 1)",//"rgba(255, 255, 255, 1)",
                 segments: 512,
-                triangles: 50,
-                circles: 0,
+                triangles: 512,
+                circles: 5,
             };
         },
         methods: {
@@ -97,7 +97,9 @@
                 GenProcess.start({
                     segments_cnt: this.segments,
                     background_color: this.background_color,
-                    edges_color: this.edges_color
+                    edges_color: this.edges_color,
+                    triangles_cnt: this.triangles,
+                    circles_cnt: this.circles,
                 });
             }
         }

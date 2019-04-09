@@ -24,6 +24,9 @@
                 edges: {
                     segments: []
                 },
+                paint: {
+                    triangles: []
+                },
                 last_time: null
             }
         },
@@ -41,6 +44,19 @@
                 this.edges.segments.push({
                     a: this.make_middle_point(),
                     b: this.make_middle_point(),
+                });
+            }
+
+            for (let i = 0; i < GenProcess.config.triangles_cnt; ++i) {
+                this.paint.triangles.push({
+                    a: this.make_middle_point(),
+                    b: this.make_middle_point(),
+                    c: this.make_middle_point(),
+                    color: {
+                        r: Math.random() * 255,
+                        g: Math.random() * 255,
+                        b: Math.random() * 255,
+                    },
                 });
             }
 
@@ -62,7 +78,7 @@
                 p.x = p._x + Math.sin(p.crazy_seed) * p.crazy_radius;
                 p.y = p._y + Math.cos(p.crazy_seed) * p.crazy_radius;
             },
-            force_point(a, b, pow, delta) {
+            force_point(a, b, delta) {
                 const max_force = 0.001;
 
                 a.crazy_seed = (a.crazy_seed + delta * a.crazy_speed) % (Math.PI * 2);
@@ -87,6 +103,11 @@
 
                 this.evaluate_point(a);
             },
+            force_color(a, b, pow) {
+                a.r = b.r - (b.r - a.r) * pow;
+                a.g = b.g - (b.g - a.g) * pow;
+                a.b = b.b - (b.b - a.b) * pow;
+            },
             draw() {
                 const now = performance.now();
                 const delta = now - this.last_time;
@@ -96,29 +117,61 @@
                 this.ctx.fillStyle = GenProcess.config.background_color;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+                if (GenProcess.paint !== null)
+                    this.draw_triangles(delta);
+
                 if (GenProcess.edges !== null)
                     this.draw_edges(delta);
 
                 requestAnimationFrame(this.draw);
             },
             draw_edges(delta) {
-                const pow = 0.7 ** (delta / 350);
-
                 for (let i = 0; i < GenProcess.config.segments_cnt; ++i) {
                     let gen_segment = GenProcess.edges.segments[i];
                     let na = { x: gen_segment[0], y: gen_segment[1] };
                     let nb = { x: gen_segment[2], y: gen_segment[3] };
 
                     let segment = this.edges.segments[i];
-                    this.force_point(segment.a, na, pow, delta);
-                    this.force_point(segment.b, nb, pow, delta);
+                    this.force_point(segment.a, na, delta);
+                    this.force_point(segment.b, nb, delta);
 
                     this.ctx.strokeStyle = GenProcess.config.edges_color;
+                    this.ctx.lineWidth = 1;
                     this.ctx.beginPath();
                     this.ctx.moveTo(this.edges.segments[i].a.x, this.edges.segments[i].a.y);
                     this.ctx.lineTo(this.edges.segments[i].b.x, this.edges.segments[i].b.y);
                     this.ctx.closePath();
                     this.ctx.stroke();
+                }
+            },
+            draw_triangles(delta) {
+                const pow = 0.6 ** (delta / 200);
+
+                for (let i = 0; i < GenProcess.config.triangles_cnt; ++i) {
+                    let gen_triangle = GenProcess.paint.triangles[i];
+                    let na = { x: gen_triangle[0], y: gen_triangle[1] };
+                    let nb = { x: gen_triangle[2], y: gen_triangle[3] };
+                    let nc = { x: gen_triangle[4], y: gen_triangle[5] };
+                    let ncolor = {
+                        r: gen_triangle[6],
+                        g: gen_triangle[7],
+                        b: gen_triangle[8],
+                    };
+
+                    let triangle = this.paint.triangles[i];
+                    this.force_point(triangle.a, na, delta);
+                    this.force_point(triangle.b, nb, delta);
+                    this.force_point(triangle.c, nc, delta);
+                    this.force_color(triangle.color, ncolor, pow);
+
+                    const col = triangle.color;
+                    this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.5)`;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(triangle.a.x, triangle.a.y);
+                    this.ctx.lineTo(triangle.b.x, triangle.b.y);
+                    this.ctx.lineTo(triangle.c.x, triangle.c.y);
+                    this.ctx.closePath();
+                    this.ctx.fill();
                 }
             },
             boom(event) {
@@ -127,11 +180,21 @@
 
                 let x = event.offsetX / this.canvas.offsetWidth * this.canvas.width;
                 let y = event.offsetY / this.canvas.offsetHeight * this.canvas.height;
+
                 for (let seg of this.edges.segments) {
                     seg.a._x = x;
                     seg.a._y = y;
                     seg.b._x = x;
                     seg.b._y = y;
+                }
+
+                for (let tr of this.paint.triangles) {
+                    tr.a._x = x;
+                    tr.a._y = y;
+                    tr.b._x = x;
+                    tr.b._y = y;
+                    tr.c._x = x;
+                    tr.c._y = y;
                 }
             }
         },

@@ -9,6 +9,7 @@ const gen_process = new Vue({
         return {
             CANVAS_SIZE: 1024,
             edges: null,
+            paint: null,
             config: null,
         };
     },
@@ -36,11 +37,16 @@ const gen_process = new Vue({
                 return;
 
             this.edges = message["edges"];
-
-            const CANVAS_MUL = this.CANVAS_SIZE / message["edges_canvas_size"];
+            const CANVAS_EDGES_MUL = this.CANVAS_SIZE / message["edges_canvas_size"];
             for (let segment of this.edges.segments)
                 for (let i = 0; i < 4; ++i)
-                    segment[i] *= CANVAS_MUL;
+                    segment[i] *= CANVAS_EDGES_MUL;
+
+            this.paint = message["paint"];
+            const CANVAS_PAINT_MUL = this.CANVAS_SIZE / message["paint_canvas_size"];
+            for (let triangle of this.paint.triangles)
+                for (let i = 0; i < 6; ++i)
+                    triangle[i] *= CANVAS_PAINT_MUL;
 
             this.request_result(1000);
         }

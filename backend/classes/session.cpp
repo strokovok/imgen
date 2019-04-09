@@ -12,6 +12,7 @@
 #include "base64_file_saver.cpp"
 #include "reproduce/gen_worker.cpp"
 #include "reproduce/edges_result.cpp"
+#include "reproduce/paint_result.cpp"
 
 using namespace std;
 using namespace json11;
@@ -32,12 +33,17 @@ private:
 	GenEdgesContext *edges_context;
 	GenWorker<EdgesResult, GenEdgesContext> *edges_worker;
 
+	GenPaintContext *paint_context;
+	GenWorker<PaintResult, GenPaintContext> *paint_worker;
+
 	//const int MAX_SIZE = 1024;
 	const int MAX_SIZE = 256;
 
 	const int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 	const int MAX_SEGMENTS = 512;
+
+	const int MAX_TRIANGLES = 512;
 
 public:
 
@@ -155,9 +161,20 @@ private:
 		if (segments_cnt < 0 || segments_cnt > MAX_SEGMENTS)
 			return void(broke("Incorrect segments_cnt"));
 
+		int triangles_cnt = 0;
+		if (request["triangles_cnt"].is_number())
+			triangles_cnt = request["triangles_cnt"].int_value();
+
+		if (triangles_cnt < 0 || triangles_cnt > MAX_TRIANGLES)
+			return void(broke("Incorrect triangles_cnt"));
+
 		edges_context = new GenEdgesContext(edges_image, segments_cnt);
 
 		edges_worker = new GenWorker<EdgesResult, GenEdgesContext>(edges_context);
+
+		paint_context = new GenPaintContext(user_image, triangles_cnt);
+
+		paint_worker = new GenWorker<PaintResult, GenPaintContext>(paint_context);
 
 		state = SessionStates::RUNNING;
 	}
@@ -170,6 +187,8 @@ private:
 			{"op", BackOps::RESULT},
 			{"edges", edges_worker->get_result()},
 			{"edges_canvas_size", MAX_SIZE},
+			{"paint", paint_worker->get_result()},
+			{"paint_canvas_size", MAX_SIZE},
 		};
 		send(response);
 	}
@@ -200,6 +219,8 @@ private:
 		if (state == SessionStates::RUNNING) {
 			delete edges_worker;
 			delete edges_context;
+			delete paint_worker;
+			delete paint_context;
 		}
 
 		if (state != SessionStates::START && state != SessionStates::UPLOADING) {

@@ -35,13 +35,10 @@ private:
 		int w = context->image->width();
 		int h = context->image->height();
 
-		int x_len = x_part / 2;
-		int y_len = y_part / 2;
-
-		x1 = max(min(x + x_len, w - 1), 0);
-		x2 = max(min(x - x_len, w - 1), 0);
-		y1 = max(min(y + y_len, h - 1), 0);
-		y2 = max(min(y - y_len, h - 1), 0);
+		x1 = max(min(x + (int)x_part, w - 1), 0);
+		x2 = max(min(x - (int)x_part, w - 1), 0);
+		y1 = max(min(y + (int)y_part, h - 1), 0);
+		y2 = max(min(y - (int)y_part, h - 1), 0);
 	}
 
 public:
@@ -59,7 +56,7 @@ public:
 
 		x = context->rnd.random_int(0, w - 1);
 		y = context->rnd.random_int(0, h - 1);
-		len = context->rnd.random_int(avg / 20, avg / 7);
+		len = context->rnd.random_int(avg / 40, avg / 14);
 		x_part = context->rnd.random_double(-1, 1);
 		y_part = context->rnd.random_double(-1, 1);
 		recount(context);
@@ -73,7 +70,7 @@ public:
 
 		x = max(min(x + context->rnd.random_int(-r, r), w - 1), 0);
 		y = max(min(y + context->rnd.random_int(-r, r), h - 1), 0);
-		len = context->rnd.random_int(avg / 20, avg / 7);
+		len = context->rnd.random_int(avg / 40, avg / 14);
 		x_part = context->rnd.random_double(-1, 1);
 		y_part = context->rnd.random_double(-1, 1);
 		recount(context);
