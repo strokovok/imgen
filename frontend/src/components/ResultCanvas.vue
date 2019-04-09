@@ -51,11 +51,11 @@
                 return {
                     _x: this.canvas.width / 2,
                     _y: this.canvas.height / 2,
-                    x_vel: Math.random() * 2 - 1,
-                    y_vel: Math.random() * 2 + 1,
+                    x_vel: 0,
+                    y_vel: 0,
                     crazy_seed: Math.random() * Math.PI * 2,
                     crazy_radius: 1 + Math.random() * 4,
-                    crazy_speed: 100 + Math.random() * 250,
+                    crazy_speed: (3 + Math.random() * 7) / 1000,
                 };
             },
             evaluate_point(p) {
@@ -63,9 +63,28 @@
                 p.y = p._y + Math.cos(p.crazy_seed) * p.crazy_radius;
             },
             force_point(a, b, pow, delta) {
-                a.crazy_seed = (a.crazy_seed + delta / a.crazy_speed) % (Math.PI * 2);
-                a._x = b.x - (b.x - a._x) * pow;
-                a._y = b.y - (b.y - a._y) * pow;
+                const max_force = 0.001;
+
+                a.crazy_seed = (a.crazy_seed + delta * a.crazy_speed) % (Math.PI * 2);
+
+                let ba = {x: b.x - a._x, y: b.y - a._y};
+                let ba_len = (ba.x ** 2 + ba.y ** 2) ** 0.5;
+
+                let ivel_len = (ba_len * 2 * max_force) ** 0.5;
+                let ivel = {x: ba.x / ba_len * ivel_len, y: ba.y / ba_len * ivel_len};
+
+                let df = {x: ivel.x - a.x_vel, y: ivel.y - a.y_vel};
+                let df_len = (df.x ** 2 + df.y ** 2) ** 0.5;
+
+                let force = max_force * delta;
+
+                let df_mul = (df_len > force) ? force / df_len : 1;
+                a.x_vel += df.x * df_mul;
+                a.y_vel += df.y * df_mul;
+
+                a._x += a.x_vel * delta;
+                a._y += a.y_vel * delta;
+                
                 this.evaluate_point(a);
             },
             draw() {
