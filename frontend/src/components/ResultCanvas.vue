@@ -1,5 +1,5 @@
 <template>
-    <canvas id="result-canvas" :style="img_size_style"></canvas>
+    <canvas id="result-canvas" :style="img_size_style" @click="boom"></canvas>
 </template>
 
 <style lang="scss" scoped>
@@ -84,7 +84,7 @@
 
                 a._x += a.x_vel * delta;
                 a._y += a.y_vel * delta;
-                
+
                 this.evaluate_point(a);
             },
             draw() {
@@ -119,6 +119,19 @@
                     this.ctx.lineTo(this.edges.segments[i].b.x, this.edges.segments[i].b.y);
                     this.ctx.closePath();
                     this.ctx.stroke();
+                }
+            },
+            boom(event) {
+                if (!event.offsetY)
+                    return;
+
+                let x = event.offsetX / this.canvas.offsetWidth * this.canvas.width;
+                let y = event.offsetY / this.canvas.offsetHeight * this.canvas.height;
+                for (let seg of this.edges.segments) {
+                    seg.a._x = x;
+                    seg.a._y = y;
+                    seg.b._x = x;
+                    seg.b._y = y;
                 }
             }
         },
