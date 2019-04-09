@@ -49,7 +49,7 @@ public:
 
 	int x1, y1, x2, y2;
 
-	EdgeSegment(GenEdgesContext *context) {
+	EdgeSegment(GenEdgesContext *context, int num) {
 		int w = context->image->width();
 		int h = context->image->height();
 		int avg = (w + h) / 2;
@@ -62,7 +62,7 @@ public:
 		recount(context);
 	}
 
-	void mutate(GenEdgesContext *context) {
+	void mutate(GenEdgesContext *context, int num) {
 		int w = context->image->width();
 		int h = context->image->height();
 		int avg = (w + h) / 2;

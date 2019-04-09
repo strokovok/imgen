@@ -13,9 +13,11 @@ public:
 	Image *image;
 	RandomHelper rnd;
 	int triangles_cnt;
+	int axis_div;
+	double opacity;
 
-	GenPaintContext(Image *image, int triangles_cnt):
-		image(image), triangles_cnt(triangles_cnt) {}
+	GenPaintContext(Image *image, int triangles_cnt, int axis_div, double opacity):
+		image(image), triangles_cnt(triangles_cnt), axis_div(axis_div), opacity(opacity) {}
 };
 
 
@@ -69,6 +71,24 @@ private:
 		b /= cnt;
 	}
 
+	void get_bound(GenPaintContext *context, int num, int &l, int &u, int &r, int &d) {
+		int w = context->image->width();
+		int h = context->image->height();
+		int avg = (w + h) / 2;
+		int sz = avg / context->axis_div;
+		int cntW = w / sz + (w % sz > 0);
+		int cntH = h / sz + (h % sz > 0);
+		int cnt = cntW * cntH;
+		int perSector = context->triangles_cnt / cnt;
+		int sector = min(num / perSector, cnt);
+		int sectorW = sector % cntW;
+		int sectorH = sector / cntW;
+		l = min(max(sectorW * sz - sz / 2, 0), w - 1);
+		r = min(max((sectorW + 1) * sz + sz / 2, 0), w - 1);
+		u = min(max(sectorH * sz - sz / 2, 0), h - 1);
+		d = min(max((sectorH + 1) * sz + sz / 2, 0), h - 1);
+	}
+
 public:
 
 	static int get_cnt(GenPaintContext *context) {
@@ -77,40 +97,43 @@ public:
 
 	int x1, y1, x2, y2, x3, y3, r, g, b;
 
-	PaintTriangle(GenPaintContext *context) {
-		int w = context->image->width();
-		int h = context->image->height();
+	PaintTriangle(GenPaintContext *context, int num) {
+		int l, u, r, d;
+		get_bound(context, num, l, u, r, d);
 
-		x1 = context->rnd.random_int(0, w - 1);
-		y1 = context->rnd.random_int(0, h - 1);
+		x1 = context->rnd.random_int(l, r);
+		y1 = context->rnd.random_int(u, d);
 
-		x2 = context->rnd.random_int(0, w - 1);
-		y2 = context->rnd.random_int(0, h - 1);
+		x2 = context->rnd.random_int(l, r);
+		y2 = context->rnd.random_int(u, d);
 
-		x3 = context->rnd.random_int(0, w - 1);
-		y3 = context->rnd.random_int(0, h - 1);
+		x3 = context->rnd.random_int(l, r);
+		y3 = context->rnd.random_int(u, d);
 
 		evaulate_color(context);
 	}
 
-	void mutate(GenPaintContext *context) {
+	void mutate(GenPaintContext *context, int num) {
 		int w = context->image->width();
 		int h = context->image->height();
 		int avg = (w + h) / 2;
 
+		int l, u, r, d;
+		get_bound(context, num, l, u, r, d);
+
 		if (context->rnd.random_double(0, 1) < 0.3) {
-			random_jump(x1, avg / 20, 0, w - 1, context);
-			random_jump(y1, avg / 20, 0, h - 1, context);
+			random_jump(x1, avg / 20, l, r, context);
+			random_jump(y1, avg / 20, u, d, context);
 		}
 
 		if (context->rnd.random_double(0, 1) < 0.3) {
-			random_jump(x2, avg / 20, 0, w - 1, context);
-			random_jump(y2, avg / 20, 0, h - 1, context);
+			random_jump(x2, avg / 20, l, r, context);
+			random_jump(y2, avg / 20, u, d, context);
 		}
 
 		if (context->rnd.random_double(0, 1) < 0.3) {
-			random_jump(x3, avg / 20, 0, w - 1, context);
-			random_jump(y3, avg / 20, 0, h - 1, context);
+			random_jump(x3, avg / 20, l, r, context);
+			random_jump(y3, avg / 20, u, d, context);
 		}
 
 		evaulate_color(context);
@@ -158,7 +181,8 @@ public:
 		res->fill(0);
 		for (auto &t: triangles) {
 			unsigned char color[] = {(unsigned char)t.r, (unsigned char)t.g, (unsigned char)t.b};
-			res->draw_triangle(t.x1, t.y1, t.x2, t.y2, t.x3, t.y3, color, 0.5);
+			float opacity = context->opacity;
+			res->draw_triangle(t.x1, t.y1, t.x2, t.y2, t.x3, t.y3, color, opacity);
 		}
 		return res;
 	}

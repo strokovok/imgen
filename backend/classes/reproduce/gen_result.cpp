@@ -57,13 +57,13 @@ protected:
 		int cnt = P::get_cnt(context);
 		for (int i = 0; i < cnt; ++i) {
 			if (pv.size() == 0 || context->rnd.random_double(0, 1) < FULL_MUTATION_PROB) {
-				mv->push_back(P(context));
+				mv->push_back(P(context, i));
 				continue;
 			}
 			int index = context->rnd.random_int(0, pv.size() - 1);
 			P el = pv[index]->at(i);
 			if (context->rnd.random_double(0, 1) < PART_MUTATION_PROB)
-				el.mutate(context);
+				el.mutate(context, i);
 			mv->push_back(el);
 		}
 	}

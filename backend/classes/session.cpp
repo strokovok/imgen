@@ -43,7 +43,9 @@ private:
 
 	const int MAX_SEGMENTS = 512;
 
-	const int MAX_TRIANGLES = 512;
+	const int MAX_TRIANGLES = 1024;
+
+	const int MAX_AXIS_DIV = 15;
 
 public:
 
@@ -150,29 +152,51 @@ private:
 		send(response);
 	}
 
+	bool extract_int_param(Json &request, string name, int &x, int mn, int mx) {
+		if (request[name].is_number())
+			x = request[name].int_value();
+		if (x < mn || x > mx) {
+			broke("Incorrect " + name);
+			return false;
+		}
+		return true;
+	}
+
+	bool extract_double_param(Json &request, string name, double &x, double mn, double mx) {
+		if (request[name].is_number())
+			x = request[name].number_value();
+		if (x < mn || x > mx) {
+			broke("Incorrect " + name);
+			return false;
+		}
+		return true;
+	}
+
 	void on_start(Json &request) {
 		if (state != SessionStates::READY_TO_RUN)
 			return void(broke("Not ready to start"));
 
 		int segments_cnt = 0;
-		if (request["segments_cnt"].is_number())
-			segments_cnt = request["segments_cnt"].int_value();
-
-		if (segments_cnt < 0 || segments_cnt > MAX_SEGMENTS)
-			return void(broke("Incorrect segments_cnt"));
+		if (!extract_int_param(request, "segments_cnt", segments_cnt, 0, MAX_SEGMENTS))
+			return;
 
 		int triangles_cnt = 0;
-		if (request["triangles_cnt"].is_number())
-			triangles_cnt = request["triangles_cnt"].int_value();
+		if (!extract_int_param(request, "triangles_cnt", triangles_cnt, 0, MAX_TRIANGLES))
+			return;
 
-		if (triangles_cnt < 0 || triangles_cnt > MAX_TRIANGLES)
-			return void(broke("Incorrect triangles_cnt"));
+		int axis_div = 5;
+		if (!extract_int_param(request, "axis_div", axis_div, 1, MAX_AXIS_DIV))
+			return;
+
+		double paint_opacity = 5;
+		if (!extract_double_param(request, "paint_opacity", paint_opacity, 0, 1))
+			return;
 
 		edges_context = new GenEdgesContext(edges_image, segments_cnt);
 
 		edges_worker = new GenWorker<EdgesResult, GenEdgesContext>(edges_context);
 
-		paint_context = new GenPaintContext(user_image, triangles_cnt);
+		paint_context = new GenPaintContext(user_image, triangles_cnt, axis_div, paint_opacity);
 
 		paint_worker = new GenWorker<PaintResult, GenPaintContext>(paint_context);
 

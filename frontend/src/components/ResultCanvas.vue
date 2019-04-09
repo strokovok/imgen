@@ -165,7 +165,8 @@
                     this.force_color(triangle.color, ncolor, pow);
 
                     const col = triangle.color;
-                    this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.5)`;
+                    const opacity = GenProcess.config.paint_opacity;
+                    this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
                     this.ctx.beginPath();
                     this.ctx.moveTo(triangle.a.x, triangle.a.y);
                     this.ctx.lineTo(triangle.b.x, triangle.b.y);

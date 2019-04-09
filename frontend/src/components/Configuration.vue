@@ -20,7 +20,19 @@
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="triangles" :min="0" :max="512"/>
+                <input-number v-model="axis_div" :min="1" :max="15"/>
+            </div>
+            <div class="config-item-text">Детализация окраски (1 - 15)</div>
+        </div>
+        <div class="config-item">
+            <div class="left-column">
+                <input-number v-model="paint_opacity" :min="0" :max="100"/>
+            </div>
+            <div class="config-item-text">Прозрачность окраски (0 - 100)</div>
+        </div>
+        <div class="config-item">
+            <div class="left-column">
+                <input-number v-model="triangles" :min="0" :max="1024"/>
             </div>
             <div class="config-item-text">Треугольников</div>
         </div>
@@ -90,6 +102,8 @@
                 segments: 512,
                 triangles: 512,
                 circles: 5,
+                axis_div: 7,
+                paint_opacity: 50
             };
         },
         methods: {
@@ -100,6 +114,8 @@
                     edges_color: this.edges_color,
                     triangles_cnt: this.triangles,
                     circles_cnt: this.circles,
+                    axis_div: this.axis_div,
+                    paint_opacity: this.paint_opacity / 100,
                 });
             }
         }
