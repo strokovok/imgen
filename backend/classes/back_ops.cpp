@@ -2,6 +2,8 @@ using namespace std;
 
 class BackOps {
 public:
+	static const string CONSTS;
+
 	static const string GIVE_ME_PIECE;
 
 	static const string READY_TO_RUN;
@@ -11,6 +13,8 @@ public:
 	static const string BROKEN;
 
 };
+
+const string BackOps::CONSTS = "CONSTS";
 
 const string BackOps::GIVE_ME_PIECE = "GIVE_ME_PIECE";
 

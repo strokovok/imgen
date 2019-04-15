@@ -37,13 +37,13 @@ const gen_process = new Vue({
                 return;
 
             this.edges = message["edges"];
-            const CANVAS_EDGES_MUL = this.CANVAS_SIZE / message["edges_canvas_size"];
+            const CANVAS_EDGES_MUL = this.CANVAS_SIZE / Session.consts.edges_canvas_size;
             for (let segment of this.edges.segments)
                 for (let i = 0; i < 4; ++i)
                     segment[i] *= CANVAS_EDGES_MUL;
 
             this.paint = message["paint"];
-            const CANVAS_PAINT_MUL = this.CANVAS_SIZE / message["paint_canvas_size"];
+            const CANVAS_PAINT_MUL = this.CANVAS_SIZE / Session.consts.paint_canvas_size;
             for (let triangle of this.paint.triangles)
                 for (let i = 0; i < 6; ++i)
                     triangle[i] *= CANVAS_PAINT_MUL;

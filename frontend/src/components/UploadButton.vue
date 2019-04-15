@@ -15,9 +15,8 @@
 </style>
 
 <script>
+    import Session from '@/js/session.js';
     import UserImage from '@/js/user_image.js';
-
-    const MAX_SIZE = 256;
 
     export default {
         data() {
@@ -57,6 +56,7 @@
 
                         let w = image.width, h = image.height;
                         let mx = Math.max(w, h);
+                        const MAX_SIZE = Math.max(Session.consts.edges_canvas_size, Session.consts.paint_canvas_size);
                         let mul = (mx > MAX_SIZE) ? MAX_SIZE / mx : 1;
                         w = Math.round(w * mul);
                         h = Math.round(h * mul);

@@ -14,15 +14,15 @@
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="segments" :min="0" :max="512"/>
+                <input-number v-model="segments" :min="0" :max="consts.max_segments"/>
             </div>
-            <div class="config-item-text">Контурных отрезков</div>
+            <div class="config-item-text">Контурных отрезков (0 - {{consts.max_segments}})</div>
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="axis_div" :min="1" :max="15"/>
+                <input-number v-model="axis_div" :min="2" :max="15"/>
             </div>
-            <div class="config-item-text">Детализация окраски (1 - 15)</div>
+            <div class="config-item-text">Детализация окраски (2 - {{consts.max_axis_div}})</div>
         </div>
         <div class="config-item">
             <div class="left-column">
@@ -32,9 +32,9 @@
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="triangles" :min="0" :max="1024"/>
+                <input-number v-model="triangles" :min="0" :max="consts.max_triangles"/>
             </div>
-            <div class="config-item-text">Треугольников</div>
+            <div class="config-item-text">Треугольников (0 - {{consts.max_triangles}})</div>
         </div>
         <div class="config-item">
             <div class="left-column">
@@ -89,6 +89,7 @@
     import 'verte/dist/verte.css';
     import InputNumber from '@/components/InputNumber.vue';
     import GenProcess from '@/js/gen_process.js';
+    import Session from '@/js/session.js';
 
     export default {
         components: {
@@ -99,7 +100,7 @@
             return {
                 background_color: "rgba(0, 0, 0, 0.7)",
                 edges_color: "rgba(0, 0, 0, 1)",
-                segments: 512,
+                segments: 1024,
                 triangles: 1024,
                 circles: 0,
                 axis_div: 10,
@@ -117,6 +118,11 @@
                     axis_div: this.axis_div,
                     paint_opacity: this.paint_opacity / 100,
                 });
+            }
+        },
+        computed: {
+            consts() {
+                return Session.consts;
             }
         }
     }

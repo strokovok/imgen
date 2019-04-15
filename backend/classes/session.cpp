@@ -30,18 +30,16 @@ private:
 
 	Image *user_image, *edges_image;
 
-	GenEdgesContext *edges_context;
 	GenWorker<EdgesResult, GenEdgesContext> *edges_worker;
-
-	GenPaintContext *paint_context;
 	GenWorker<PaintResult, GenPaintContext> *paint_worker;
-
-	//const int MAX_SIZE = 1024;
-	const int MAX_SIZE = 256;
 
 	const int MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-	const int MAX_SEGMENTS = 512;
+	const int EDGES_CANVAS_SIZE = 256;
+
+	const int PAINT_CANVAS_SIZE = 256;
+
+	const int MAX_SEGMENTS = 1024;
 
 	const int MAX_TRIANGLES = 1024;
 
@@ -51,6 +49,15 @@ public:
 
 	Session(int id, crow::websocket::connection* socket): id(id), socket(socket) {
 		state = SessionStates::START;
+		Json msg = Json::object {
+			{"op", BackOps::CONSTS},
+			{"edges_canvas_size", EDGES_CANVAS_SIZE},
+			{"paint_canvas_size", PAINT_CANVAS_SIZE},
+			{"max_segments", MAX_SEGMENTS},
+			{"max_triangles", MAX_TRIANGLES},
+			{"max_axis_div", MAX_AXIS_DIV},
+		};
+		send(msg);
 	}
 
 	~Session() {
@@ -184,21 +191,21 @@ private:
 		if (!extract_int_param(request, "triangles_cnt", triangles_cnt, 0, MAX_TRIANGLES))
 			return;
 
-		int axis_div = 5;
-		if (!extract_int_param(request, "axis_div", axis_div, 1, MAX_AXIS_DIV))
+		int axis_div = 10;
+		if (!extract_int_param(request, "axis_div", axis_div, 2, MAX_AXIS_DIV))
 			return;
 
-		double paint_opacity = 5;
+		double paint_opacity = 0.75;
 		if (!extract_double_param(request, "paint_opacity", paint_opacity, 0, 1))
 			return;
 
-		edges_context = new GenEdgesContext(edges_image, segments_cnt);
+		edges_worker = new GenWorker<EdgesResult, GenEdgesContext>(
+			new GenEdgesContext(edges_image, segments_cnt)
+		);
 
-		edges_worker = new GenWorker<EdgesResult, GenEdgesContext>(edges_context);
-
-		paint_context = new GenPaintContext(user_image, triangles_cnt, axis_div, paint_opacity);
-
-		paint_worker = new GenWorker<PaintResult, GenPaintContext>(paint_context);
+		paint_worker = new GenWorker<PaintResult, GenPaintContext>(
+			new GenPaintContext(user_image, triangles_cnt, axis_div, paint_opacity)
+		);
 
 		state = SessionStates::RUNNING;
 	}
@@ -210,22 +217,28 @@ private:
 		Json response = Json::object {
 			{"op", BackOps::RESULT},
 			{"edges", edges_worker->get_result()},
-			{"edges_canvas_size", MAX_SIZE},
 			{"paint", paint_worker->get_result()},
-			{"paint_canvas_size", MAX_SIZE},
 		};
 		send(response);
 	}
 
-	void process_file(string user_image_path) {
-		user_image = new Image(user_image_path.c_str());
+	Image* open_and_resize(string path, int max_size) {
+		Image *image = new Image(path.c_str());
 
-		int w = user_image->width(), h = user_image->height();
-		float mul = (w > h) ? MAX_SIZE / float(w) : MAX_SIZE / float(h);
+		int w = image->width(), h = image->height();
+		float mul = (w > h) ? max_size / float(w) : max_size / float(h);
 		w *= mul, h *= mul;
-		user_image->resize(w, h);
+		image->resize(w, h);
 
-		edges_image = EdgeDetector().process(user_image);
+		return image;
+	}
+
+	void process_file(string path) {
+		user_image = open_and_resize(path, PAINT_CANVAS_SIZE);
+
+		Image *image_for_edges = open_and_resize(path, EDGES_CANVAS_SIZE);
+		edges_image = EdgeDetector().process(image_for_edges);
+		delete image_for_edges;
 	}
 
 	void clear_base64_cache() {
@@ -242,9 +255,7 @@ private:
 
 		if (state == SessionStates::RUNNING) {
 			delete edges_worker;
-			delete edges_context;
 			delete paint_worker;
-			delete paint_context;
 		}
 
 		if (state != SessionStates::START && state != SessionStates::UPLOADING) {

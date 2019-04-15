@@ -7,6 +7,7 @@ const session = new Vue({
         return {
             state: SessionStates.START,
             socket: null,
+            consts: null,
         };
     },
     methods: {
@@ -30,6 +31,8 @@ const session = new Vue({
         on_socket_message(message) {
             message = JSON.parse(message.data);
             //console.log("GOT MESSAGE", message);
+            if (message["op"] === BackOps.CONSTS)
+                this.consts = message;
             if (message["op"] === BackOps.BROKEN) {
                 console.log("Broken:", message);
                 alert("Что-то пошло не так, перезагрузите страницу.");

@@ -121,6 +121,7 @@ public:
 		delete realtime_best;
 		delete shared_best;
 		delete extracted_best;
+		delete context;
 	}
 
 };
