@@ -103,8 +103,8 @@
                 segments: 1024,
                 triangles: 1024,
                 circles: 0,
-                axis_div: 10,
-                paint_opacity: 75
+                axis_div: 7,
+                paint_opacity: 50,
             };
         },
         methods: {

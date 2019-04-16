@@ -42,8 +42,8 @@ public:
 
 protected:
 
-	const double FULL_MUTATION_PROB = 0.02;
-	const double PART_MUTATION_PROB = 0.04;
+	const double FULL_MUTATION_PROB = 0.0025;
+	const double PART_MUTATION_PROB = 0.005;
 
 	template <class P>
 	void gen_property_vector(function<vector<P>*(T*)> get_pv) {

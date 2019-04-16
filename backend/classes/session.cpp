@@ -37,7 +37,7 @@ private:
 
 	const int EDGES_CANVAS_SIZE = 256;
 
-	const int PAINT_CANVAS_SIZE = 256;
+	const int PAINT_CANVAS_SIZE = 128;
 
 	const int MAX_SEGMENTS = 1024;
 
