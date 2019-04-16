@@ -110,7 +110,9 @@
             },
             draw() {
                 const now = performance.now();
-                const delta = now - this.last_time;
+                let delta = now - this.last_time;
+                if (delta > 1000)
+                    delta = 30;
                 this.last_time = now;
 
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -175,6 +177,13 @@
                     this.ctx.fill();
                 }
             },
+            boom_point(point, x, y) {
+                point._x = x + Math.random() * 50 - 25;
+                point._y = y + Math.random() * 50 - 25;
+                const mx = 0.3;
+                point.x_vel = Math.random() * mx - mx / 2;
+                point.y_vel = Math.random() * mx - mx / 2;
+            },
             boom(event) {
                 if (!event.offsetY)
                     return;
@@ -183,19 +192,14 @@
                 let y = event.offsetY / this.canvas.offsetHeight * this.canvas.height;
 
                 for (let seg of this.edges.segments) {
-                    seg.a._x = x;
-                    seg.a._y = y;
-                    seg.b._x = x;
-                    seg.b._y = y;
+                    this.boom_point(seg.a, x, y);
+                    this.boom_point(seg.b, x, y);
                 }
 
                 for (let tr of this.paint.triangles) {
-                    tr.a._x = x;
-                    tr.a._y = y;
-                    tr.b._x = x;
-                    tr.b._y = y;
-                    tr.c._x = x;
-                    tr.c._y = y;
+                    this.boom_point(tr.a, x, y);
+                    this.boom_point(tr.b, x, y);
+                    this.boom_point(tr.c, x, y);
                 }
             }
         },

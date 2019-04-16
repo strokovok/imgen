@@ -99,12 +99,12 @@
         data() {
             return {
                 background_color: "rgba(0, 0, 0, 0.7)",
-                edges_color: "rgba(0, 0, 0, 1)",
+                edges_color: "rgba(0, 0, 0, 0.3)",
                 segments: 1024,
                 triangles: 1024,
                 circles: 0,
-                axis_div: 7,
-                paint_opacity: 50,
+                axis_div: 9,
+                paint_opacity: 70,
             };
         },
         methods: {
