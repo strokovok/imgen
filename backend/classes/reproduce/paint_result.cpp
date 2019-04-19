@@ -54,7 +54,10 @@ public:
 		res->fill(0);
 
 		int ti = 0, ci = 0;
-		for (bool done = false; !done;) {
+		bool done = true;
+		done &= (ti == triangles.size());
+		done &= (ci == circles.size());
+		while (!done) {
 			double tp = triangles.size() ? double(ti) / triangles.size() : 1e18;
 			double cp = circles.size() ? double(ci) / circles.size() : 1e18;
 

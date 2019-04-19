@@ -147,7 +147,10 @@
                     const tcnt = GenProcess.config.triangles_cnt;
                     const ccnt = GenProcess.config.circles_cnt;
                     let ti = 0, ci = 0;
-                    for (let done = false; !done;) {
+                    let done = true;
+                    done &= (ti === tcnt);
+                    done &= (ci === ccnt);
+                    while (!done) {
                         const tp = (tcnt > 0) ? ti / tcnt : 1e9;
                         const cp = (ccnt > 0) ? ci / ccnt : 1e9;
                         if (tp < cp)
