@@ -43,6 +43,8 @@ private:
 
 	const int MAX_TRIANGLES = 1024;
 
+	const int MAX_CIRCLES = 1024;
+
 	const int MAX_AXIS_DIV = 15;
 
 public:
@@ -55,6 +57,7 @@ public:
 			{"paint_canvas_size", PAINT_CANVAS_SIZE},
 			{"max_segments", MAX_SEGMENTS},
 			{"max_triangles", MAX_TRIANGLES},
+			{"max_circles", MAX_CIRCLES},
 			{"max_axis_div", MAX_AXIS_DIV},
 		};
 		send(msg);
@@ -191,6 +194,10 @@ private:
 		if (!extract_int_param(request, "triangles_cnt", triangles_cnt, 0, MAX_TRIANGLES))
 			return;
 
+		int circles_cnt = 0;
+		if (!extract_int_param(request, "circles_cnt", circles_cnt, 0, MAX_CIRCLES))
+			return;
+
 		int axis_div = 10;
 		if (!extract_int_param(request, "axis_div", axis_div, 2, MAX_AXIS_DIV))
 			return;
@@ -204,7 +211,13 @@ private:
 		);
 
 		paint_worker = new GenWorker<PaintResult, GenPaintContext>(
-			new GenPaintContext(user_image, triangles_cnt, axis_div, paint_opacity)
+			new GenPaintContext(
+				user_image,
+				triangles_cnt,
+				circles_cnt,
+				axis_div,
+				paint_opacity
+			)
 		);
 
 		state = SessionStates::RUNNING;

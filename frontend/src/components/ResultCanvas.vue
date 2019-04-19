@@ -25,7 +25,8 @@
                     segments: []
                 },
                 paint: {
-                    triangles: []
+                    triangles: [],
+                    circles: [],
                 },
                 last_time: null
             }
@@ -52,6 +53,18 @@
                     a: this.make_middle_point(),
                     b: this.make_middle_point(),
                     c: this.make_middle_point(),
+                    color: {
+                        r: Math.random() * 255,
+                        g: Math.random() * 255,
+                        b: Math.random() * 255,
+                    },
+                });
+            }
+
+            for (let i = 0; i < GenProcess.config.circles_cnt; ++i) {
+                this.paint.circles.push({
+                    p: this.make_middle_point(),
+                    radius: Math.random() * 10,
                     color: {
                         r: Math.random() * 255,
                         g: Math.random() * 255,
@@ -119,8 +132,24 @@
                 this.ctx.fillStyle = GenProcess.config.background_color;
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-                if (GenProcess.paint !== null)
-                    this.draw_triangles(delta);
+                const pow = 0.6 ** (delta / 700);
+
+                if (GenProcess.paint !== null) {
+                    const tcnt = GenProcess.config.triangles_cnt;
+                    const ccnt = GenProcess.config.circles_cnt;
+                    let ti = 0, ci = 0;
+                    for (let done = false; !done;) {
+                        const tp = (tcnt > 0) ? ti / tcnt : 1e9;
+                        const cp = (ccnt > 0) ? ci / ccnt : 1e9;
+                        if (tp < cp)
+                            this.draw_triangle(ti++, delta, pow);
+                        else
+                            this.draw_circle(ci++, delta, pow);
+                        done = true;
+                        done &= (ti === tcnt);
+                        done &= (ci === ccnt);
+                    }
+                }
 
                 if (GenProcess.edges !== null)
                     this.draw_edges(delta);
@@ -146,36 +175,55 @@
                     this.ctx.stroke();
                 }
             },
-            draw_triangles(delta) {
-                const pow = 0.6 ** (delta / 500);
+            draw_triangle(i, delta, pow) {
+                let gen_triangle = GenProcess.paint.triangles[i];
+                let na = { x: gen_triangle[0], y: gen_triangle[1] };
+                let nb = { x: gen_triangle[2], y: gen_triangle[3] };
+                let nc = { x: gen_triangle[4], y: gen_triangle[5] };
+                let ncolor = {
+                    r: gen_triangle[6],
+                    g: gen_triangle[7],
+                    b: gen_triangle[8],
+                };
 
-                for (let i = 0; i < GenProcess.config.triangles_cnt; ++i) {
-                    let gen_triangle = GenProcess.paint.triangles[i];
-                    let na = { x: gen_triangle[0], y: gen_triangle[1] };
-                    let nb = { x: gen_triangle[2], y: gen_triangle[3] };
-                    let nc = { x: gen_triangle[4], y: gen_triangle[5] };
-                    let ncolor = {
-                        r: gen_triangle[6],
-                        g: gen_triangle[7],
-                        b: gen_triangle[8],
-                    };
+                let triangle = this.paint.triangles[i];
+                this.force_point(triangle.a, na, delta);
+                this.force_point(triangle.b, nb, delta);
+                this.force_point(triangle.c, nc, delta);
+                this.force_color(triangle.color, ncolor, pow);
 
-                    let triangle = this.paint.triangles[i];
-                    this.force_point(triangle.a, na, delta);
-                    this.force_point(triangle.b, nb, delta);
-                    this.force_point(triangle.c, nc, delta);
-                    this.force_color(triangle.color, ncolor, pow);
+                const col = triangle.color;
+                const opacity = GenProcess.config.paint_opacity;
+                this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
+                this.ctx.beginPath();
+                this.ctx.moveTo(triangle.a.x, triangle.a.y);
+                this.ctx.lineTo(triangle.b.x, triangle.b.y);
+                this.ctx.lineTo(triangle.c.x, triangle.c.y);
+                this.ctx.closePath();
+                this.ctx.fill();
+            },
+            draw_circle(i, delta, pow) {
+                let gen_circle = GenProcess.paint.circles[i];
+                let np = { x: gen_circle[0], y: gen_circle[1] };
+                let nradius = gen_circle[2];
+                let ncolor = {
+                    r: gen_circle[3],
+                    g: gen_circle[4],
+                    b: gen_circle[5],
+                };
 
-                    const col = triangle.color;
-                    const opacity = GenProcess.config.paint_opacity;
-                    this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(triangle.a.x, triangle.a.y);
-                    this.ctx.lineTo(triangle.b.x, triangle.b.y);
-                    this.ctx.lineTo(triangle.c.x, triangle.c.y);
-                    this.ctx.closePath();
-                    this.ctx.fill();
-                }
+                let circle = this.paint.circles[i];
+                this.force_point(circle.p, np, delta);
+                circle.radius = nradius - (nradius - circle.radius) * pow;
+                this.force_color(circle.color, ncolor, pow);
+
+                const col = circle.color;
+                const opacity = GenProcess.config.paint_opacity;
+                this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
+                this.ctx.beginPath();
+                this.ctx.arc(circle.p.x, circle.p.y, circle.radius, 0, Math.PI * 2);
+                this.ctx.closePath();
+                this.ctx.fill();
             },
             boom_point(point, x, y) {
                 point._x = x + Math.random() * 50 - 25;
@@ -200,6 +248,11 @@
                     this.boom_point(tr.a, x, y);
                     this.boom_point(tr.b, x, y);
                     this.boom_point(tr.c, x, y);
+                }
+
+                for (let c of this.paint.circles) {
+                    this.boom_point(c.p, x, y);
+                    c.radius = Math.random() * 10;
                 }
             }
         },

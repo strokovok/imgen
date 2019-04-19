@@ -47,6 +47,9 @@ const gen_process = new Vue({
             for (let triangle of this.paint.triangles)
                 for (let i = 0; i < 6; ++i)
                     triangle[i] *= CANVAS_PAINT_MUL;
+            for (let circle of this.paint.circles)
+                for (let i = 0; i < 3; ++i)
+                    circle[i] *= CANVAS_PAINT_MUL;
 
             this.request_result(1000);
         }

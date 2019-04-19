@@ -38,9 +38,9 @@
         </div>
         <div class="config-item">
             <div class="left-column">
-                <input-number v-model="circles" :min="0" :max="64"/>
+                <input-number v-model="circles" :min="0" :max="consts.max_circles"/>
             </div>
-            <div class="config-item-text">Окружностей</div>
+            <div class="config-item-text">Окружностей (0 - {{consts.max_circles}})</div>
         </div>
         <div class="ui-button launch-button" @click="launch">Запуск</div>
     </div>
@@ -101,8 +101,8 @@
                 background_color: "rgba(0, 0, 0, 0.7)",
                 edges_color: "rgba(0, 0, 0, 0.3)",
                 segments: 1024,
-                triangles: 1024,
-                circles: 0,
+                triangles: 768,
+                circles: 128,
                 axis_div: 9,
                 paint_opacity: 70,
             };
