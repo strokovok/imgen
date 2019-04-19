@@ -99,8 +99,17 @@
                 let ba = {x: b.x - a._x, y: b.y - a._y};
                 let ba_len = (ba.x ** 2 + ba.y ** 2) ** 0.5;
 
+                let vel = (a.x_vel ** 2 + a.y_vel ** 2) ** 0.5;
+                if (ba_len < 1 && vel < 0.01) {
+                    ba.x = ba.y = ba_len = a.x_vel = a.y_vel = 0;
+                    a._x = b.x;
+                    a._y = b.y;
+                }
+
                 let ivel_len = (ba_len * 2 * max_force) ** 0.5;
-                let ivel = {x: ba.x / ba_len * ivel_len, y: ba.y / ba_len * ivel_len};
+                let ivel = {x: 0, y: 0};
+                if (ba_len > 0)
+                    ivel = {x: ba.x / ba_len * ivel_len, y: ba.y / ba_len * ivel_len};
 
                 let df = {x: ivel.x - a.x_vel, y: ivel.y - a.y_vel};
                 let df_len = (df.x ** 2 + df.y ** 2) ** 0.5;
@@ -175,6 +184,16 @@
                     this.ctx.stroke();
                 }
             },
+            norm_channel(x) {
+                return Math.max(Math.min(Math.floor(x), 255), 0);
+            },
+            norm_color(color) {
+                return {
+                    r: this.norm_channel(color.r),
+                    g: this.norm_channel(color.g),
+                    b: this.norm_channel(color.b)
+                }
+            },
             draw_triangle(i, delta, pow) {
                 let gen_triangle = GenProcess.paint.triangles[i];
                 let na = { x: gen_triangle[0], y: gen_triangle[1] };
@@ -192,7 +211,7 @@
                 this.force_point(triangle.c, nc, delta);
                 this.force_color(triangle.color, ncolor, pow);
 
-                const col = triangle.color;
+                const col = this.norm_color(triangle.color);
                 const opacity = GenProcess.config.paint_opacity;
                 this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
                 this.ctx.beginPath();
@@ -217,7 +236,7 @@
                 circle.radius = nradius - (nradius - circle.radius) * pow;
                 this.force_color(circle.color, ncolor, pow);
 
-                const col = circle.color;
+                const col = this.norm_color(circle.color);
                 const opacity = GenProcess.config.paint_opacity;
                 this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
                 this.ctx.beginPath();
