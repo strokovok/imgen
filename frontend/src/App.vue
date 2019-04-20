@@ -88,10 +88,10 @@
                 return Session.state === SessionStates.READY_TO_RUN;
             },
             show_result() {
-                return Session.state === SessionStates.RUNNING;
+                return [SessionStates.RUNNING, SessionStates.STOPPED].includes(Session.state);
             },
             show_controls() {
-                return Session.state === SessionStates.RUNNING;
+                return [SessionStates.RUNNING, SessionStates.STOPPED].includes(Session.state);
             }
         },
         created() {

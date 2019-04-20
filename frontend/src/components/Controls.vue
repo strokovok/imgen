@@ -1,7 +1,7 @@
 <template>
     <div class="controls">
-        <!--<div class="ui-button control-el">Заново</div>-->
-        <!--<div class="ui-button control-el">Стоп</div>-->
+        <div class="ui-button control-el" @click="restart">Заново</div>
+        <div class="ui-button control-el" @click="stop" :class="stop_button_class">Стоп</div>
         <!--<div class="ui-button control-el">Сохранить png</div>-->
         <!--<div class="ui-button control-el">Сохранить svg</div>-->
         <div class="control-el control-text">Время:<br>{{time}}с</div>
@@ -41,26 +41,37 @@
             return {
                 iteration_display: 0,
                 accuracy_display: 0,
+                stopped: false,
             }
         },
         created() {
             requestAnimationFrame(this.update_values);
         },
+        beforeDestroy() {
+            this.stopped = true;
+        },
         methods: {
             update_iteration() {
                 const a = GenProcess.iteration;
                 const b = this.iteration_display;
-                this.iteration_display = Math.floor(a - (a - b) * 0.99);
+                this.iteration_display = Math.floor(a - (a - b) * 0.9);
             },
             update_accuracy() {
                 const a = GenProcess.accuracy;
                 const b = this.accuracy_display;
-                this.accuracy_display = a - (a - b) * 0.99;
+                this.accuracy_display = a - (a - b) * 0.9;
             },
             update_values() {
+                if (this.stopped) return;
                 this.update_iteration();
                 this.update_accuracy();
                 requestAnimationFrame(this.update_values);
+            },
+            restart() {
+                GenProcess.restart();
+            },
+            stop() {
+                GenProcess.stop();
             }
         },
         computed: {
@@ -68,9 +79,16 @@
                 return GenProcess.time.toFixed(1);
             },
             accuracy_display_formatted() {
-                let res = this.accuracy_display ** 10;
+                const ac = this.accuracy_display;
+                let th = 0.7;
+                let res = ac > th ? th + (((ac - th) / (1 - th)) ** 5) * (1 - th) : ac;
                 res = Math.floor(res * 10000) / 100;
                 return res.toFixed(2);
+            },
+            stop_button_class() {
+                return {
+                    "ui-not-active": GenProcess.stopped,
+                }
             }
         }
     }

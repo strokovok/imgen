@@ -88,6 +88,8 @@ public:
 
         if (op == FrontOps::GET_RESULT) return void(on_get_result(request));
 
+        if (op == FrontOps::STOP) return void(on_stop(request));
+
         broke("Unknown operation: " + op);
 	}
 
@@ -243,6 +245,15 @@ private:
 		send(response);
 	}
 
+	void on_stop(Json &request) {
+		if (state != SessionStates::RUNNING)
+			return void(broke("Not running to stop"));
+
+		clear_workers();
+
+		state = SessionStates::READY_TO_RUN;
+	}
+
 	Image* open_and_resize(string path, int max_size) {
 		Image *image = new Image(path.c_str());
 
@@ -267,6 +278,11 @@ private:
 		user_image_base64.shrink_to_fit();
 	}
 
+	void clear_workers() {
+		delete edges_worker;
+		delete paint_worker;
+	}
+
 	void clear() {
 		if (state == SessionStates::BROKEN)
 			return;
@@ -274,10 +290,8 @@ private:
 		if (state == SessionStates::UPLOADING)
 			clear_base64_cache();
 
-		if (state == SessionStates::RUNNING) {
-			delete edges_worker;
-			delete paint_worker;
-		}
+		if (state == SessionStates::RUNNING)
+			clear_workers();
 
 		if (state != SessionStates::START && state != SessionStates::UPLOADING) {
 			delete user_image;

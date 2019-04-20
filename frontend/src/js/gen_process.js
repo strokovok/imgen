@@ -15,12 +15,17 @@ const gen_process = new Vue({
             time: 0,
             iteration: 0,
             accuracy: 0,
+            stopped: true,
         };
+    },
+    created() {
+        Session.$on('on-socket-message', this.on_message);
     },
     methods: {
         start(config) {
+            this.stopped = false;
+            this.edges = this.paint = null;
             this.config = config;
-            Session.$on('on-socket-message', this.on_message);
 
             config["op"] = FrontOps.START;
             Session.send(config);
@@ -37,11 +42,14 @@ const gen_process = new Vue({
             Session.state = SessionStates.RUNNING;
         },
         updateTime() {
+            if (this.stopped) return;
             this.time = Math.floor((performance.now() - this.time_start) / 100) / 10;
             requestAnimationFrame(this.updateTime);
         },
         request_result(delay) {
+            if (this.stopped) return;
             setTimeout(() => {
+                if (this.stopped) return;
                 Session.send({
                     "op": FrontOps.GET_RESULT,
                 });
@@ -70,6 +78,22 @@ const gen_process = new Vue({
             this.accuracy = message["accuracy"];
 
             this.request_result(1000);
+        },
+        stop_process() {
+            this.stopped = true;
+            Session.send({
+                "op": FrontOps.STOP,
+            });
+        },
+        restart() {
+            if (Session.state === SessionStates.RUNNING)
+                this.stop_process();
+            Session.state = SessionStates.READY_TO_RUN;
+        },
+        stop() {
+            if (Session.state === SessionStates.RUNNING)
+                this.stop_process();
+            Session.state = SessionStates.STOPPED;
         }
     }
 });

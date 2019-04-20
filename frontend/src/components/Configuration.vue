@@ -107,6 +107,17 @@
                 paint_opacity: 70,
             };
         },
+        created() {
+            const config = GenProcess.config;
+            if (config === null) return;
+            this.segments = config.segments_cnt;
+            this.background_color = config.background_color;
+            this.edges_color = config.edges_color;
+            this.triangles = config.triangles_cnt;
+            this.circles = config.circles_cnt;
+            this.axis_div = config.axis_div;
+            this.paint_opacity = config.paint_opacity * 100;
+        },
         methods: {
             launch() {
                 GenProcess.start({

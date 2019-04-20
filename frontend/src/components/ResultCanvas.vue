@@ -28,7 +28,8 @@
                     triangles: [],
                     circles: [],
                 },
-                last_time: null
+                last_time: null,
+                stopped: false,
             }
         },
         mounted() {
@@ -74,6 +75,9 @@
             }
 
             this.last_time = performance.now();
+        },
+        beforeDestroy() {
+            this.stopped = true;
         },
         methods: {
             make_middle_point() {
@@ -131,6 +135,8 @@
                 a.b = b.b - (b.b - a.b) * pow;
             },
             draw() {
+                if (this.stopped) return;
+
                 const now = performance.now();
                 let delta = now - this.last_time;
                 if (delta > 1000)
