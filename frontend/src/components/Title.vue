@@ -22,7 +22,7 @@
             letter-spacing: 0;
             padding-left: 0;
             margin-top: 20px;
-            margin-bottom: 100px;
+            margin-bottom: 50px;
             transform: rotate(720deg);
         }
     }

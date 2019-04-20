@@ -14,7 +14,7 @@
     import GenProcess from '@/js/gen_process.js';
 
     const MAX_WIDTH = 640;
-    const MAX_HEIGHT = 640;
+    const MAX_HEIGHT = 600;
 
     export default {
         data() {

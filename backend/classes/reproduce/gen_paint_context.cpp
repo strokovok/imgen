@@ -11,6 +11,7 @@ public:
 	int circles_cnt;
 	int axis_div;
 	double opacity;
+	double best_possible_score;
 
 	GenPaintContext(
 		Image *image,
@@ -22,6 +23,8 @@ public:
 			triangles_cnt(triangles_cnt),
 			circles_cnt(circles_cnt),
 			axis_div(axis_div),
-			opacity(opacity)
-		{}
+			opacity(opacity) {
+
+		best_possible_score = double(255 * 255) * 3 * image->width() * image->height();
+	}
 };

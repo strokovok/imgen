@@ -19,9 +19,11 @@ private:
 
 	vector<T*> population;
 	T *realtime_best;
+	long long iteration = 0;
 
 	bool stopped = false;
 	T *shared_best;
+	long long shared_iteration = 0;
 	mutex mtx;
 
 	T *extracted_best;
@@ -63,6 +65,7 @@ private:
 		vector<T*> old_population = population;
 		born_n(SPAWN_CNT, old_population);
 		do_selection();
+		++iteration;
 	}
 
 	void work() {
@@ -79,10 +82,17 @@ private:
 			mtx.lock();
 			swap(shared_best, put_best);
 			keep_working &= !stopped;
+			shared_iteration = iteration;
 			mtx.unlock();
 
 			delete put_best;
 		}
+	}
+
+	void extract_best() {
+		lock_guard<mutex> _(mtx);
+		if (shared_best->score > extracted_best->score)
+			swap(shared_best, extracted_best);
 	}
 
 public:
@@ -100,12 +110,18 @@ public:
 	}
 
 	Json get_result() {
-		mtx.lock();
-		if (shared_best->score > extracted_best->score)
-			swap(shared_best, extracted_best);
-		mtx.unlock();
-
+		extract_best();
 		return extracted_best->to_json();
+	}
+
+	long long get_iteration() {
+		lock_guard<mutex> _(mtx);
+		return shared_iteration;
+	}
+
+	double get_accuracy() {
+		extract_best();
+		return extracted_best->score / context->best_possible_score;
 	}
 
 	~GenWorker() {

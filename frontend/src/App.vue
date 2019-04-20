@@ -8,6 +8,9 @@
             <result-canvas v-if="show_result" :key="'result-canvas'" class="main-elements-item"/>
         </transition-group>
         <upload-button v-if="show_upload_button"></upload-button>
+        <transition name="fade">
+            <controls v-if="show_controls"></controls>
+        </transition>
     </div>
 </template>
 
@@ -42,6 +45,13 @@
     .main-elements-leave-active {
         position: absolute;
     }
+
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity 1s;
+    }
+    .fade-enter, .fade-leave-to {
+        opacity: 0;
+    }
 </style>
 
 <script>
@@ -52,6 +62,7 @@
     import UserImage from "./components/UserImage.vue";
     import Configuration from "./components/Configuration.vue";
     import ResultCanvas from "./components/ResultCanvas.vue";
+    import Controls from './components/Controls.vue';
 
     export default {
         name: 'app',
@@ -61,6 +72,7 @@
             UploadButton,
             Configuration,
             ResultCanvas,
+            Controls
         },
         computed: {
             show_upload_button() {
@@ -76,6 +88,9 @@
                 return Session.state === SessionStates.READY_TO_RUN;
             },
             show_result() {
+                return Session.state === SessionStates.RUNNING;
+            },
+            show_controls() {
                 return Session.state === SessionStates.RUNNING;
             }
         },

@@ -11,6 +11,10 @@ const gen_process = new Vue({
             edges: null,
             paint: null,
             config: null,
+            time_start: 0,
+            time: 0,
+            iteration: 0,
+            accuracy: 0,
         };
     },
     methods: {
@@ -21,9 +25,20 @@ const gen_process = new Vue({
             config["op"] = FrontOps.START;
             Session.send(config);
 
+            this.time_start = performance.now();
+            this.time = 0;
+            requestAnimationFrame(this.updateTime);
+
             this.request_result(0);
 
+            this.iteration = 0;
+            this.accuracy = 0;
+
             Session.state = SessionStates.RUNNING;
+        },
+        updateTime() {
+            this.time = Math.floor((performance.now() - this.time_start) / 100) / 10;
+            requestAnimationFrame(this.updateTime);
         },
         request_result(delay) {
             setTimeout(() => {
@@ -50,6 +65,9 @@ const gen_process = new Vue({
             for (let circle of this.paint.circles)
                 for (let i = 0; i < 3; ++i)
                     circle[i] *= CANVAS_PAINT_MUL;
+
+            this.iteration = message["iteration"];
+            this.accuracy = message["accuracy"];
 
             this.request_result(1000);
         }

@@ -227,10 +227,18 @@ private:
 		if (state != SessionStates::RUNNING)
 			return void(broke("Not running to get result"));
 
+		double iteration =
+			(edges_worker->get_iteration() + paint_worker->get_iteration()) / 2;
+
+		double accuracy =
+			(edges_worker->get_accuracy() + paint_worker->get_accuracy()) / 2;
+
 		Json response = Json::object {
 			{"op", BackOps::RESULT},
 			{"edges", edges_worker->get_result()},
 			{"paint", paint_worker->get_result()},
+			{"iteration", iteration},
+			{"accuracy", accuracy},
 		};
 		send(response);
 	}
