@@ -12,6 +12,7 @@
 <script>
     import UserImage from '@/js/user_image.js';
     import GenProcess from '@/js/gen_process.js';
+    import Drawer from '@/js/drawer.js';
 
     const MAX_WIDTH = 640;
     const MAX_HEIGHT = 600;
@@ -143,31 +144,14 @@
                     delta = 30;
                 this.last_time = now;
 
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                this.ctx.fillStyle = GenProcess.config.background_color;
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                Drawer.draw_background(this.ctx, this.canvas);
 
                 const pow = 0.6 ** (delta / 700);
 
-                if (GenProcess.paint !== null) {
-                    const tcnt = GenProcess.config.triangles_cnt;
-                    const ccnt = GenProcess.config.circles_cnt;
-                    let ti = 0, ci = 0;
-                    let done = true;
-                    done &= (ti === tcnt);
-                    done &= (ci === ccnt);
-                    while (!done) {
-                        const tp = (tcnt > 0) ? ti / tcnt : 1e9;
-                        const cp = (ccnt > 0) ? ci / ccnt : 1e9;
-                        if (tp < cp)
-                            this.draw_triangle(ti++, delta, pow);
-                        else
-                            this.draw_circle(ci++, delta, pow);
-                        done = true;
-                        done &= (ti === tcnt);
-                        done &= (ci === ccnt);
-                    }
-                }
+                Drawer.draw_paint_order(
+                    (ti) => this.draw_triangle(ti, delta, pow),
+                    (ci) => this.draw_circle(ci, delta, pow)
+                );
 
                 if (GenProcess.edges !== null)
                     this.draw_edges(delta);
@@ -184,23 +168,7 @@
                     this.force_point(segment.a, na, delta);
                     this.force_point(segment.b, nb, delta);
 
-                    this.ctx.strokeStyle = GenProcess.config.edges_color;
-                    this.ctx.lineWidth = 1;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(this.edges.segments[i].a.x, this.edges.segments[i].a.y);
-                    this.ctx.lineTo(this.edges.segments[i].b.x, this.edges.segments[i].b.y);
-                    this.ctx.closePath();
-                    this.ctx.stroke();
-                }
-            },
-            norm_channel(x) {
-                return Math.max(Math.min(Math.floor(x), 255), 0);
-            },
-            norm_color(color) {
-                return {
-                    r: this.norm_channel(color.r),
-                    g: this.norm_channel(color.g),
-                    b: this.norm_channel(color.b)
+                    Drawer.draw_edge(this.ctx, segment);
                 }
             },
             draw_triangle(i, delta, pow) {
@@ -220,15 +188,7 @@
                 this.force_point(triangle.c, nc, delta);
                 this.force_color(triangle.color, ncolor, pow);
 
-                const col = this.norm_color(triangle.color);
-                const opacity = GenProcess.config.paint_opacity;
-                this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
-                this.ctx.beginPath();
-                this.ctx.moveTo(triangle.a.x, triangle.a.y);
-                this.ctx.lineTo(triangle.b.x, triangle.b.y);
-                this.ctx.lineTo(triangle.c.x, triangle.c.y);
-                this.ctx.closePath();
-                this.ctx.fill();
+                Drawer.draw_triangle(this.ctx, triangle);
             },
             draw_circle(i, delta, pow) {
                 let gen_circle = GenProcess.paint.circles[i];
@@ -245,13 +205,7 @@
                 circle.radius = nradius - (nradius - circle.radius) * pow;
                 this.force_color(circle.color, ncolor, pow);
 
-                const col = this.norm_color(circle.color);
-                const opacity = GenProcess.config.paint_opacity;
-                this.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${opacity})`;
-                this.ctx.beginPath();
-                this.ctx.arc(circle.p.x, circle.p.y, circle.radius, 0, Math.PI * 2);
-                this.ctx.closePath();
-                this.ctx.fill();
+                Drawer.draw_circle(this.ctx, circle);
             },
             boom_point(point, x, y) {
                 point._x = x + Math.random() * 50 - 25;

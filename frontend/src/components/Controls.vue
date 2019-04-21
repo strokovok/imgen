@@ -1,9 +1,9 @@
 <template>
     <div class="controls">
+        <a class="ui-button control-el" @click="save_png" ref="png_button">Сохранить png</a>
+        <!--<div class="ui-button control-el">Сохранить svg</div>-->
         <div class="ui-button control-el" @click="restart">Заново</div>
         <div class="ui-button control-el" @click="stop" :class="stop_button_class">Стоп</div>
-        <!--<div class="ui-button control-el">Сохранить png</div>-->
-        <!--<div class="ui-button control-el">Сохранить svg</div>-->
         <div class="control-el control-text">Время:<br>{{time}}с</div>
         <div class="control-el control-text">Итерация:<br>{{iteration_display}}</div>
         <div class="control-el control-text">Точность:<br>{{accuracy_display_formatted}}%</div>
@@ -35,6 +35,7 @@
 
 <script>
     import GenProcess from '@/js/gen_process.js';
+    import Drawer from '@/js/drawer.js';
 
     export default {
         data() {
@@ -72,6 +73,13 @@
             },
             stop() {
                 GenProcess.stop();
+            },
+            save_png() {
+                const cnv = Drawer.draw_all();
+                const link = document.createElement('a');
+                link.download = "imgen.png";
+                link.href = cnv.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                link.click();
             }
         },
         computed: {
