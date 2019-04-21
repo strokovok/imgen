@@ -1,7 +1,7 @@
 <template>
     <div class="controls">
-        <a class="ui-button control-el" @click="save_png" ref="png_button">Сохранить png</a>
-        <!--<div class="ui-button control-el">Сохранить svg</div>-->
+        <div class="ui-button control-el" @click="save_png">Сохранить png</div>
+        <div class="ui-button control-el" @click="save_svg">Сохранить svg</div>
         <div class="ui-button control-el" @click="restart">Заново</div>
         <div class="ui-button control-el" @click="stop" :class="stop_button_class">Стоп</div>
         <div class="control-el control-text">Время:<br>{{time}}с</div>
@@ -79,6 +79,13 @@
                 const link = document.createElement('a');
                 link.download = "imgen.png";
                 link.href = cnv.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                link.click();
+            },
+            save_svg() {
+                const link = document.createElement('a');
+                link.download = "imgen.svg";
+                const file = new Blob([Drawer.draw_svg()], {type: 'svg'});
+                link.href = URL.createObjectURL(file);
                 link.click();
             }
         },

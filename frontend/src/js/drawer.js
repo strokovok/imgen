@@ -108,6 +108,43 @@ const drawer = new Vue({
             }
 
             return canvas;
+        },
+        draw_svg() {
+            const resultCanvas = document.getElementById('result-canvas');
+
+            let svg = `<svg version="1.1" baseProfile="full"` +
+                ` width="${resultCanvas.width}" height="${resultCanvas.height}"` +
+                ` xmlns="http://www.w3.org/2000/svg">\n`;
+
+            svg += `<rect width="100%" height="100%" fill="${GenProcess.config.background_color}"/>\n`;
+
+            const opacity = GenProcess.config.paint_opacity;
+
+            this.draw_paint_order(
+                (ti) => {
+                    const t = GenProcess.paint.triangles[ti];
+                    svg += `<polygon points=`;
+                    svg += `"${t[0]},${t[1]}`;
+                    svg += ` ${t[2]},${t[3]}`;
+                    svg += ` ${t[4]},${t[5]}"`;
+                    svg += ` fill="rgba(${t[6]},${t[7]},${t[8]},${opacity})"/>\n`;
+                },
+                (ci) => {
+                    const c = GenProcess.paint.circles[ci];
+                    svg += `<circle cx="${c[0]}" cy="${c[1]}" r="${c[2]}"`;
+                    svg += ` fill="rgba(${c[3]},${c[4]},${c[5]},${opacity})"/>\n`;
+                }
+            );
+
+            for (let i = 0; i < GenProcess.config.segments_cnt; ++i) {
+                let e = GenProcess.edges.segments[i];
+                svg += `<line x1="${e[0]}" y1="${e[1]}" x2="${e[2]}" y2="${e[3]}"`;
+                svg += ` style="stroke:${GenProcess.config.edges_color};stroke-width:1"/>\n`;
+            }
+
+            svg += "</svg>\n";
+
+            return svg;
         }
     }
 });
