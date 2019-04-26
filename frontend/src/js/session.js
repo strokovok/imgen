@@ -13,7 +13,8 @@ const session = new Vue({
     methods: {
         start_socket() {
             let host = location.host;
-            this.socket = new WebSocket("ws://" + host + "/ws");
+            let protocol = location.protocol === "https:" ? "wss://" : "ws://";
+            this.socket = new WebSocket(protocol + host + "/ws");
             this.socket.onopen = () => this.on_socket_open();
             this.socket.onclose = (event) => this.on_socket_close(event);
             this.socket.onerror = (error) => this.on_socket_error(error);
